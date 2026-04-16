@@ -5,8 +5,10 @@ public class Product {
     private int storeId;
     private int categoryId;
     private String name;
+
+
     private String description;
-    private int productimage;
+    private String productimage;
     private double price;
     private String condition;
     private int weightGrams;
@@ -17,7 +19,7 @@ public class Product {
 
 
     public Product(int productId, int soldCount, int weightGrams, double ratingAverage, String condition, double price,
-                   String description,int image ,String name, int categoryId, int storeId) {
+                   String description,String image ,String name, int categoryId, int storeId) {
         this.productId = productId;
         this.soldCount = soldCount;
         this.weightGrams = weightGrams;
@@ -29,6 +31,16 @@ public class Product {
         this.categoryId = categoryId;
         this.storeId = storeId;
         this.productimage = image;
+    }
+
+
+
+    public String getProductimage() {
+        return productimage;
+    }
+
+    public void setProductimage(String productimage) {
+        this.productimage = productimage;
     }
 
     public int getProductId() {
