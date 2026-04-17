@@ -26,16 +26,35 @@
             android:textStyle="bold" />
         </RelativeLayout>
 
-        <EditText
-            android:id="@+id/exploreetSearch"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="24dp"
-            android:background="@drawable/searchbar"
-            android:drawableEnd="@drawable/ic_search"
-            android:drawablePadding="12dp"
+            android:background="@drawable/searchbar">
+
+            <EditText
+            android:id="@+id/exploreetSearch"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_toStartOf="@id/exploreBtnSearch"
+            android:background="@null"
             android:hint="Find Product, Store"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
             android:paddingHorizontal="16dp" />
+
+            <ImageView
+                android:id="@+id/exploreBtnSearch"
+                android:layout_width="50dp"
+                android:layout_height="100dp"
+                android:layout_alignParentEnd="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_search" />
+        </RelativeLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -66,6 +85,7 @@
             android:id="@+id/explorechipGroupTrending"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:singleLine="false"
             android:layout_marginTop="16dp"
             app:chipSpacingHorizontal="8dp"
             app:chipSpacingVertical="8dp" />
@@ -84,15 +104,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvSeeAll"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:text="See All"
-                android:textColor="#808080"
-                android:textSize="14sp" />
         </RelativeLayout>
 
         <androidx.recyclerview.widget.RecyclerView

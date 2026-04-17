@@ -7,12 +7,12 @@
     android:clickable="true"
     android:focusable="true"
     android:orientation="horizontal"
-    android:paddingVertical="12dp"
-    android:paddingHorizontal="4dp">
+    android:paddingVertical="10dp"
+    android:paddingHorizontal="3dp">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         app:cardBackgroundColor="#D9D9D9"
         app:cardCornerRadius="8dp"
         app:cardElevation="0dp">
@@ -29,7 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="5dp"
         android:orientation="vertical">
 
         <TextView
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:text="Redmi 9A"
             android:textColor="#000000"
-            android:textSize="16sp" />
+            android:textSize="10sp" />
 
         <TextView
             android:id="@+id/trndtvProductPrice"
@@ -47,13 +47,13 @@
             android:layout_marginTop="4dp"
             android:text="$ 348"
             android:textColor="#000000"
-            android:textSize="18sp"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="7dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -78,7 +78,7 @@
                 android:layout_marginHorizontal="6dp"
                 android:text="|"
                 android:textColor="#D3D3D3"
-                android:textSize="12sp" />
+                android:textSize="9sp" />
 
             <TextView
                 android:id="@+id/trndtvProductSold"
@@ -86,25 +86,9 @@
                 android:layout_height="wrap_content"
                 android:text="Sold 250+"
                 android:textColor="#808080"
-                android:textSize="12sp" />
+                android:textSize="9sp" />
 
-            <ImageView
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:layout_marginStart="12dp"
-                android:src="@android:drawable/ic_menu_mylocation"
-                app:tint="#808080" />
 
-            <TextView
-                android:id="@+id/trndtvProductLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="South Jakarta"
-                android:textColor="#808080"
-                android:textSize="12sp" />
 
         </LinearLayout>
     </LinearLayout>
