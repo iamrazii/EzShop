@@ -23,12 +23,10 @@ public class ExploreProductRVAdapter extends RecyclerView.Adapter<ExploreProduct
     private OnProductClickListener listener;
 
 
-    // 1. The custom Interface for clicks
     public interface OnProductClickListener {
         void onProductClick(Product product);
     }
 
-    // 2. Constructor requires the listener
     public ExploreProductRVAdapter(Context context, ArrayList<Product> productList, OnProductClickListener listener) {
         this.context = context;
         this.productList = productList;
@@ -75,10 +73,9 @@ public class ExploreProductRVAdapter extends RecyclerView.Adapter<ExploreProduct
         return productList.size();
     }
 
-    // 4. The ViewHolder maps the UI elements
     public static class ProductViewHolder extends RecyclerView.ViewHolder {
         ImageView ivProduct;
-        TextView tvName, tvPrice, tvRating, tvSold, tvLocation;
+        TextView tvName, tvPrice, tvRating, tvSold;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -88,7 +85,6 @@ public class ExploreProductRVAdapter extends RecyclerView.Adapter<ExploreProduct
             tvPrice = itemView.findViewById(R.id.trndtvProductPrice);
             tvRating = itemView.findViewById(R.id.trndtvProductRating);
             tvSold = itemView.findViewById(R.id.trndtvProductSold);
-            tvLocation = itemView.findViewById(R.id.trndtvProductLocation);
         }
     }
 }
