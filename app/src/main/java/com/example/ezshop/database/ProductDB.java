@@ -62,6 +62,25 @@ public class ProductDB {
         return list;
     }
 
+    public ArrayList<Product> searchProducts(String query) {
+        ArrayList<Product> list = new ArrayList<>();
+
+        // The % symbols mean "find this text anywhere inside the product name"
+        String sqlQuery = "SELECT * FROM products WHERE _name LIKE ?";
+        String searchPattern = "%" + query + "%";
+
+        Cursor cursor = database.rawQuery(sqlQuery, new String[]{searchPattern});
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                list.add(cursorToProduct(cursor));
+            }
+            cursor.close();
+        }
+
+        return list;
+    }
+
     public ArrayList<Product> getProductsByCategory(int categoryId) {
         ArrayList<Product> list = new ArrayList<>();
         Cursor cursor = database.query(
@@ -88,7 +107,7 @@ public class ProductDB {
         String rawSql = "SELECT p.*, s.location AS store_location " +
                 "FROM products p " +
                 "INNER JOIN stores s ON p.store_id = s.store_id " +
-                "ORDER BY p.sold_count DESC LIMIT 10";
+                "ORDER BY p.sold_count DESC LIMIT 5";
 
         Cursor cursor = database.rawQuery(rawSql, null);
 

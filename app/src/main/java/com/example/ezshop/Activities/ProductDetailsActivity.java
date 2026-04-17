@@ -2,16 +2,19 @@ package com.example.ezshop.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ezshop.R;
@@ -43,6 +46,8 @@ public class ProductDetailsActivity extends AppCompatActivity {
             return insets;
         });
 
+
+
         init();
 
         btnBack.setOnClickListener( v-> { finish(); });
@@ -65,7 +70,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
 
              tvStoreLocation.setText("Online • " + intent.getStringExtra("PRODUCT_LOCATION"));
 
-             String desc = intent.getStringExtra("PRODUCT_DESC");
+             String desc = intent.getStringExtra("PRODUCT_DESCRIPTION");
              tvDetailDesc.setText(desc != null ? desc : "No description available.");
 
              String imageName = intent.getStringExtra("PRODUCT_IMAGE");
@@ -79,10 +84,11 @@ public class ProductDetailsActivity extends AppCompatActivity {
              if (productId != -1)
              {
 
-                 ArrayList<Review> productReviews = dbManager.reviewDB.getReviewsByProductId(productId);
-
+                ArrayList<Pair<Review,String>> productReviews = dbManager.reviewDB.getReviewsByProductId(productId);
                  ReviewsAdapter reviewAdapter = new ReviewsAdapter(this, productReviews, true);
+                 rvReviews.setLayoutManager(new LinearLayoutManager(this));
                  rvReviews.setAdapter(reviewAdapter);
+
 
                  if (productReviews.size() <= 3) {
                      btnSeeAllReviews.setVisibility(View.GONE);
@@ -101,6 +107,14 @@ public class ProductDetailsActivity extends AppCompatActivity {
     }
 
     void init(){
+
+
+        dbManager = new DBManager(this);
+        try {
+            dbManager.open();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         btnBack = findViewById(R.id.prodDetailBtnBack);
         ivDetailImage = findViewById(R.id.prodDetailIvDetailImage);
         tvDetailName = findViewById(R.id.prodDetailTvDetailName);

@@ -3,6 +3,8 @@ package com.example.ezshop.database;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Pair;
+
 import java.util.ArrayList;
 import com.example.ezshop.models.Review;
 
@@ -31,9 +33,16 @@ public class ReviewDB {
         return database.insert(TABLE_REVIEWS, null, cv);
     }
 
-    public ArrayList<Review> getReviewsByProductId(int productId) {
-        ArrayList<Review> list = new ArrayList<>();
-        Cursor cursor = database.query(TABLE_REVIEWS, null, COLUMN_PRODUCT_ID + "=?", new String[]{String.valueOf(productId)}, null, null, COLUMN_ID + " DESC");
+    public ArrayList<Pair<Review,String>> getReviewsByProductId(int productId) {
+        ArrayList<Pair<Review, String>> list = new ArrayList<>();
+
+        String query = "SELECT reviews.*, users.name AS user_name " +
+                "FROM reviews " +
+                "INNER JOIN users ON reviews.user_id = users.user_id " +
+                "WHERE reviews.product_id = ? " +
+                "ORDER BY reviews.review_id DESC";
+
+        Cursor cursor = database.rawQuery(query, new String[]{String.valueOf(productId)});
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 Review r = new Review();
@@ -43,7 +52,12 @@ public class ReviewDB {
                 r.setRating(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_RATING)));
                 r.setComment(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_COMMENT)));
                 r.setReviewDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
-                list.add(r);
+
+                String joinedName = cursor.getString(cursor.getColumnIndexOrThrow("user_name"));
+
+                // 2. Package them together using the built-in Pair class!
+                list.add(new Pair<>(r, joinedName));
+
             }
             cursor.close();
         }

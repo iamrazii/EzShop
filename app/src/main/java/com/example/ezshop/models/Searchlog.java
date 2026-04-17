@@ -5,12 +5,11 @@ public class Searchlog {
     private Integer userId; // Integer allows this to be 'null' for guest searches
     private String searchQuery;
 
-    private Integer productId;
     private long timestamp;
 
     public Searchlog() {} // Required empty constructor
 
-    public Searchlog(int logId, Integer userId, Integer productId ,String searchQuery, long timestamp) {
+    public Searchlog(int logId, Integer userId,String searchQuery, long timestamp) {
         this.logId = logId;
         this.userId = userId;
         this.searchQuery = searchQuery;
@@ -39,14 +38,6 @@ public class Searchlog {
 
     public void setSearchQuery(String searchQuery) {
         this.searchQuery = searchQuery;
-    }
-
-    public Integer getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Integer productId) {
-        this.productId = productId;
     }
 
     public long getTimestamp() {

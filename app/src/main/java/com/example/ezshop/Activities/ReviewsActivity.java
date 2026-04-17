@@ -2,6 +2,7 @@ package com.example.ezshop.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Pair;
 import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
@@ -51,7 +52,7 @@ public class ReviewsActivity extends AppCompatActivity {
         int productId = intent.getIntExtra("PRODUCT_ID", -1);
 
         if (productId != -1) {
-            ArrayList<Review> allReviews = dbManager.reviewDB.getReviewsByProductId(productId);
+            ArrayList<Pair<Review ,String>> allReviews = dbManager.reviewDB.getReviewsByProductId(productId);
             ReviewsAdapter adapter = new ReviewsAdapter(this, allReviews, false);
             rvAllReviews.setAdapter(adapter);
         }

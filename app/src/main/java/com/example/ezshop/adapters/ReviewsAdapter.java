@@ -1,6 +1,7 @@
 package com.example.ezshop.adapters;
 
 import android.content.Context;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +20,11 @@ import java.util.ArrayList;
 public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewViewHolder> {
 
     private Context context;
-    private ArrayList<Review> reviewList;
+    private ArrayList<Pair<Review,String>>reviewList;
     private boolean isPreview;  // to control amount of reviews shown on recycler view
 
-    private DBManager db;
 
-
-    public ReviewsAdapter(Context context, ArrayList<Review> reviewList, boolean preview) {
+    public ReviewsAdapter(Context context, ArrayList<Pair<Review, String> > reviewList, boolean preview) {
         this.context = context;
         this.reviewList = reviewList;
         this.isPreview = preview;
@@ -41,9 +40,10 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewVi
 
     @Override
     public void onBindViewHolder(@NonNull ReviewViewHolder holder, int position) {
-        Review currentReview = reviewList.get(position);
-        User u = db.userDB.getUserById(currentReview.getUserId());
-        holder.tvName.setText(u.getName());
+        Pair<Review,String> currentobj = reviewList.get(position);
+        Review currentReview = currentobj.first;
+        String UserName = currentobj.second;
+        holder.tvName.setText(UserName);
         holder.tvRating.setText(String.valueOf(currentReview.getRating()));
         holder.tvDate.setText(currentReview.getReviewDate());
         holder.tvComment.setText(currentReview.getComment());
