@@ -5,6 +5,7 @@ public class Store {
     private String storeName;
     private String location;
     private String status;
+    private int owner_id;
     private double rating;
 
     public Store() {}
@@ -15,6 +16,24 @@ public class Store {
         this.location = location;
         this.status = status;
         this.rating = rating;
+    }
+
+
+    public Store(int storeId, String storeName, String location, String status, double rating , int ownerid) {
+        this.storeId = storeId;
+        this.storeName = storeName;
+        this.location = location;
+        this.status = status;
+        this.rating = rating;
+        this.owner_id = ownerid;
+    }
+
+    public int getOwner_id() {
+        return owner_id;
+    }
+
+    public void setOwner_id(int owner_id) {
+        this.owner_id = owner_id;
     }
 
     public int getStoreId() {

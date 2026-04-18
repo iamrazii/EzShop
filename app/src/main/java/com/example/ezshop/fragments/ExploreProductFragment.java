@@ -81,7 +81,6 @@ public class ExploreProductFragment extends Fragment {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                     String query = Search.getText().toString().trim();
-                    Toast.makeText(getContext(),"Hello",Toast.LENGTH_SHORT).show();
                     if (!query.isEmpty()) {
                         db.searchlogDB.addSearch(query);
                         Intent intent = new Intent(requireActivity(), CategoryResultsActivity.class);

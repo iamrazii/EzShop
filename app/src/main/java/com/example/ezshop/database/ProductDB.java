@@ -123,6 +123,25 @@ public class ProductDB {
         return list;
     }
 
+    public ArrayList<Product> getProductsForSeller(int currentUserId) {
+        ArrayList<Product> myProducts = new ArrayList<>();
+
+        String query = "SELECT p.* FROM products p " +
+                "INNER JOIN stores s ON p.store_id = s.store_id " +
+                "WHERE s.owner_id = ?";
+
+        Cursor cursor = database.rawQuery(query, new String[]{String.valueOf(currentUserId)});
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                Product p = cursorToProduct(cursor);
+                myProducts.add(p);
+            }
+            cursor.close();
+        }
+
+        return myProducts;
+    }
     private Product cursorToProduct(Cursor cursor) {
         Product p = new Product();
         p.setProductId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)));
