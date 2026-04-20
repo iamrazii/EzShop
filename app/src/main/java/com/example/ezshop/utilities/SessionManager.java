@@ -11,18 +11,27 @@ public class SessionManager {
     private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
     private static final String KEY_USER_ID = "userId";
     private static final String KEY_ROLE = "userRole";
+    private static final String KEY_STORE_ID = "storeId";
 
     public SessionManager(Context context) {
         prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         editor = prefs.edit();
     }
 
-
     public void createLoginSession(int userId, String role) {
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.putInt(KEY_USER_ID, userId);
         editor.putString(KEY_ROLE, role);
         editor.apply();
+    }
+
+    public void setStoreId(int storeId) {
+        editor.putInt(KEY_STORE_ID, storeId);
+        editor.apply();
+    }
+
+    public int getStoreId() {
+        return prefs.getInt(KEY_STORE_ID, -1);
     }
 
     public int getUserId() {
@@ -33,6 +42,9 @@ public class SessionManager {
         return prefs.getString(KEY_ROLE, "Guest");
     }
 
+    public String getUserType() {
+        return getUserRole();
+    }
     public boolean isLoggedIn() {
         return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
     }
@@ -41,6 +53,4 @@ public class SessionManager {
         editor.clear();
         editor.apply();
     }
-
-
 }

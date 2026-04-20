@@ -40,4 +40,44 @@ public class CategoryDB {
         }
         return list;
     }
+
+    public void seedCategories() {
+        try {
+            android.database.Cursor cursor = database.rawQuery("SELECT COUNT(*) FROM categories", null);
+            cursor.moveToFirst();
+            int count = cursor.getInt(0);
+            cursor.close();
+
+            if (count < 16) {
+                database.delete("categories", null, null);
+
+                String[] initialCategories = {
+                        "Electronics",
+                        "Laptops & PCs",
+                        "Mobile Phones",
+                        "Fashion & Apparel",
+                        "Footwear",
+                        "Home & Kitchen",
+                        "Beauty & Personal Care",
+                        "Health & Fitness",
+                        "Sports & Outdoors",
+                        "Toys & Games",
+                        "Automotive Parts",
+                        "Books & Stationery",
+                        "Groceries",
+                        "Pet Supplies",
+                        "Office Supplies",
+                        "Handmade Crafts"
+                };
+
+                for (String catName : initialCategories) {
+                    android.content.ContentValues values = new android.content.ContentValues();
+                    values.put("name", catName);
+                    database.insert("categories", null, values);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

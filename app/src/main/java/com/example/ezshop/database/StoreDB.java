@@ -63,4 +63,14 @@ public class StoreDB {
         return storeId;
     }
 
+    public boolean updateStore(Store store) {
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_NAME, store.getStoreName());
+        cv.put(COLUMN_LOCATION, store.getLocation());
+        cv.put(COLUMN_STATUS, store.getStatus());
+
+        int rowsAffected = database.update(TABLE_STORES, cv, COLUMN_ID + "=?", new String[]{String.valueOf(store.getStoreId())});
+        return rowsAffected > 0;
+    }
+
 }

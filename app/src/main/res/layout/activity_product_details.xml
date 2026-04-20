@@ -73,7 +73,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="320dp"
                 android:layout_marginHorizontal="16dp"
-                app:cardBackgroundColor="#D9D9D9"
+                app:cardBackgroundColor="#F5F5F5"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
 
@@ -177,7 +177,7 @@
                     <TextView android:id="@+id/prodDetailTvDetailWeight" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=": 0 Gram" android:textColor="#333333" />
                 </LinearLayout>
 
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+                <LinearLayout android:id="@+id/rowStorefront" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
                     <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Storefront" android:textColor="#757575" />
                     <TextView android:id="@+id/prodDetailTvDetailStoreName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=": Unknown Store" android:textColor="#333333" />
                 </LinearLayout>
@@ -192,9 +192,7 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent" android:layout_height="1dp"
-                android:background="#F0F0F0" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -232,18 +230,19 @@
                     android:textColor="#333333"
                     android:textSize="14sp"
                     android:textStyle="bold" />
-
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="#F0F0F0" />
 
             <LinearLayout
+                android:id="@+id/layoutStoreInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
 
                 <TextView
+                    android:id="@+id/tvStoreLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
