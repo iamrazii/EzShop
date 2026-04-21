@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <application
+
+
+
+        android:requestLegacyExternalStorage="true"
+
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -11,24 +21,61 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.EzShop">
+
         <activity
-            android:name=".Activities.CategoryResultsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Activities.ReviewsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Activities.ProductDetailsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Activities.MainActivity"
+            android:name=".Activities.WelcomeActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".Activities.LoginActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".Activities.SignupActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".Activities.UserHomeActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".Activities.SellerHomeActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".Activities.CartActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".Activities.CheckoutActivity"
+            android:exported="false"/>
+
+
+
+        <activity
+            android:name=".Activities.ProductDetailsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".Activities.CategoryResultsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".Activities.ReviewsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".Activities.MainActivity"
+            android:exported="false"/>
+
+        <activity android:name=".Activities.EditProductActivity" />
+
+
     </application>
 
 </manifest>

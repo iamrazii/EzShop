@@ -9,12 +9,12 @@ import androidx.annotation.Nullable;
 public class DBManager {
 
     public static final String DATABASE_NAME = "EzShopDB";
-    public static final int DATABASE_VERSION = 1;
+    // BUMPED VERSION TO 2: This forces the app to rebuild the fixed tables!
+    public static final int DATABASE_VERSION = 2;
 
     private Context context;
     private DBHelper helper;
     private SQLiteDatabase database;
-
 
     public UserDB userDB;
     public CategoryDB categoryDB;
@@ -24,17 +24,13 @@ public class DBManager {
     public ReviewDB reviewDB;
     public SearchlogDB searchlogDB;
     public CartItemDB cartItemDB;
-
     public OrderDB orderDB;
 
-
-    public DBManager(Context context)
-    {
+    public DBManager(Context context) {
         this.context = context;
     }
 
-    public DBManager open()
-    {
+    public DBManager open() {
         helper = new DBHelper(context);
         database = helper.getWritableDatabase();
 
@@ -55,16 +51,15 @@ public class DBManager {
         return this;
     }
 
-    public void close()
-    {
-        if (helper!=null) helper.close();
+    public void close() {
+        if (helper != null) helper.close();
     }
 
-    private class DBHelper extends SQLiteOpenHelper
-    {
+    private class DBHelper extends SQLiteOpenHelper {
         public DBHelper(@Nullable Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
         }
+
         @Override
         public void onCreate(SQLiteDatabase db) {
 
@@ -79,10 +74,10 @@ public class DBManager {
                     "category_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "name TEXT, " + "icon_name TEXT)");
 
-            // Stores Table
+            // Stores Table (FIXED: Added owner_id)
             db.execSQL("CREATE TABLE stores (" +
                     "store_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "store_name TEXT, " + "location TEXT, " + "status TEXT, " + "rating REAL)");
+                    "store_name TEXT, " + "owner_id INTEGER, " + "location TEXT, " + "status TEXT, " + "rating REAL)");
 
             // Promo Table
             db.execSQL("CREATE TABLE promos (" +
@@ -131,33 +126,33 @@ public class DBManager {
                     "FOREIGN KEY(user_id) REFERENCES users(user_id), " +
                     "FOREIGN KEY(product_id) REFERENCES products(product_id))");
 
-            // Orders Table
-           // Need to verify
+            // Orders Table (FIXED: Matched exactly to OrderDB schema)
             db.execSQL("CREATE TABLE orders (" +
                     "order_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "user_id INTEGER, " +
-                    "total_amount REAL, " +
-                    "status TEXT, " +
-                    "order_date INTEGER, " +
+                    "promo_id INTEGER, " +
                     "shipping_address TEXT, " +
+                    "payment_method TEXT, " +
+                    "total_price REAL, " +
+                    "order_status TEXT, " +
+                    "created_at INTEGER, " +
                     "FOREIGN KEY(user_id) REFERENCES users(user_id))");
 
-            // OrderItems Table
-            // Need to verify
+            // OrderItems Table (FIXED: Added price_at_purchase)
             db.execSQL("CREATE TABLE order_items (" +
                     "order_item_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "order_id INTEGER, " +
                     "product_id INTEGER, " +
+                    "price_at_purchase REAL, " +
                     "quantity INTEGER, " +
                     "FOREIGN KEY(order_id) REFERENCES orders(order_id), " +
                     "FOREIGN KEY(product_id) REFERENCES products(product_id))");
-
-
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int i, int i1) {
-
+            db.execSQL("DROP TABLE IF EXISTS order_items");
+            db.execSQL("DROP TABLE IF EXISTS orders");
             db.execSQL("DROP TABLE IF EXISTS cart_items");
             db.execSQL("DROP TABLE IF EXISTS search_logs");
             db.execSQL("DROP TABLE IF EXISTS reviews");
@@ -166,11 +161,10 @@ public class DBManager {
             db.execSQL("DROP TABLE IF EXISTS stores");
             db.execSQL("DROP TABLE IF EXISTS categories");
             db.execSQL("DROP TABLE IF EXISTS users");
-            db.execSQL("DROP TABLE IF EXISTS orders");
-            db.execSQL("DROP TABLE IF EXISTS order_items");
 
-            // Create everything again
+            // Create everything again cleanly
             onCreate(db);
         }
+
     }
 }

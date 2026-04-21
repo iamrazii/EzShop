@@ -157,4 +157,56 @@ public class ProductDB {
         p.setSoldCount(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SOLD)));
         return p;
     }
+
+
+    public boolean updateProduct(Product product) {
+        ContentValues cv = new ContentValues();
+
+        // We only update what is actually in your Edit UI
+        cv.put(COLUMN_NAME, product.getName());
+        cv.put(COLUMN_PRICE, product.getPrice());
+        cv.put(COLUMN_DESC, product.getDescription());
+
+        // The WHERE clause stays the same to find the right product
+        int rows = database.update(
+                TABLE_PRODUCTS,
+                cv,
+                COLUMN_ID + "=?",
+                new String[]{String.valueOf(product.getProductId())}
+        );
+
+        return rows > 0;
+    }
+    public boolean deleteProduct(int productId) {
+        int rows = database.delete("products", "product_id=?", new String[]{String.valueOf(productId)});
+        return rows > 0;
+    }
+
+
+    public ArrayList<Product> getTopSellingProducts(int storeId) {
+        ArrayList<Product> list = new ArrayList<>();
+
+        // The WHERE clause to only get THIS seller's products
+        String selection = COLUMN_STORE_ID + "=?";
+        String[] selectionArgs = { String.valueOf(storeId) };
+
+        android.database.Cursor cursor = database.query(
+                TABLE_PRODUCTS,
+                null,
+                selection,       // Added the filter
+                selectionArgs,   // Added the store ID
+                null,
+                null,
+                COLUMN_SOLD + " DESC",
+                "5"
+        );
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                list.add(cursorToProduct(cursor));
+            }
+            cursor.close();
+        }
+        return list;
+    }
 }
