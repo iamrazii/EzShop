@@ -8,12 +8,16 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.cloudinary.android.MediaManager;
 import com.example.ezshop.fragments.ExploreProductFragment;
 import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Category;
 import com.example.ezshop.models.Product;
 import com.example.ezshop.models.Store;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +32,11 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+
+        Map<String, String> config = new HashMap<>();
+        config.put("cloud_name", "da3jabd2w"); // Replace with your actual cloud name!
+        MediaManager.init(this, config);
 
         // 1. Open the database
         dbManager = new DBManager(this);
