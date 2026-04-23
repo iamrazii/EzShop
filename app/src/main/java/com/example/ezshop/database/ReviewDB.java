@@ -1,4 +1,5 @@
 package com.example.ezshop.database;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -6,10 +7,16 @@ import android.util.Pair;
 import java.util.ArrayList;
 import java.util.UUID;
 import com.example.ezshop.models.Review;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ReviewDB {
     private SQLiteDatabase database;
-    public ReviewDB(SQLiteDatabase database) { this.database = database; }
+    private FirebaseFirestore cloudDb;
+
+    public ReviewDB(SQLiteDatabase database) {
+        this.database = database;
+        this.cloudDb = FirebaseFirestore.getInstance();
+    }
 
     public String addReview(Review review) {
         ContentValues cv = new ContentValues();
@@ -20,7 +27,13 @@ public class ReviewDB {
         cv.put("rating", review.getRating());
         cv.put("comment", review.getComment());
         cv.put("review_date", review.getReviewDate());
+
         database.insert("reviews", null, cv);
+
+        // FIREBASE SYNC
+        review.setReviewId(newId);
+        cloudDb.collection("reviews").document(newId).set(review);
+
         return newId;
     }
 

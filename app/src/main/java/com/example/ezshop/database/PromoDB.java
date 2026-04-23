@@ -1,13 +1,20 @@
 package com.example.ezshop.database;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import java.util.UUID;
 import com.example.ezshop.models.Promo;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class PromoDB {
     private SQLiteDatabase database;
-    public PromoDB(SQLiteDatabase database) { this.database = database; }
+    private FirebaseFirestore cloudDb;
+
+    public PromoDB(SQLiteDatabase database) {
+        this.database = database;
+        this.cloudDb = FirebaseFirestore.getInstance();
+    }
 
     public String addPromo(Promo promo) {
         ContentValues cv = new ContentValues();
@@ -15,7 +22,12 @@ public class PromoDB {
         cv.put("promo_id", newId);
         cv.put("code", promo.getCode().toUpperCase());
         cv.put("discount_percentage", promo.getDiscountPercentage());
-        if(database.insert("promos", null, cv) != -1) return newId;
+        if(database.insert("promos", null, cv) != -1) {
+            promo.setPromoId(newId);
+            // FIREBASE SYNC
+            cloudDb.collection("promos").document(newId).set(promo);
+            return newId;
+        }
         return null;
     }
 

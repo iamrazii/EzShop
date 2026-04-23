@@ -6,17 +6,23 @@ import android.database.sqlite.SQLiteDatabase;
 import java.util.ArrayList;
 import java.util.UUID;
 import com.example.ezshop.models.CartItem;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class CartItemDB {
     private SQLiteDatabase database;
+    private FirebaseFirestore cloudDb;
+
     private static final String TABLE_CART = "cart_items";
     private static final String COLUMN_ID = "cart_item_id";
     private static final String COLUMN_USER_ID = "user_id";
     private static final String COLUMN_PRODUCT_ID = "product_id";
-    private static final String COLUMN_VARIANT_ID = "variant_id"; // Added to schema mentally
+    private static final String COLUMN_VARIANT_ID = "variant_id";
     private static final String COLUMN_QTY = "quantity";
 
-    public CartItemDB(SQLiteDatabase database) { this.database = database; }
+    public CartItemDB(SQLiteDatabase database) {
+        this.database = database;
+        this.cloudDb = FirebaseFirestore.getInstance();
+    }
 
     public void addToCart(String userId, String productId, String variantId, int quantityToAdd) {
         Cursor cursor = database.query(TABLE_CART, new String[]{COLUMN_ID, COLUMN_QTY},
@@ -26,22 +32,54 @@ public class CartItemDB {
         if (cursor != null && cursor.moveToFirst()) {
             String existingId = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID));
             int currentQty = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_QTY));
+            int newQty = currentQty + quantityToAdd;
+
             ContentValues cv = new ContentValues();
-            cv.put(COLUMN_QTY, currentQty + quantityToAdd);
+            cv.put(COLUMN_QTY, newQty);
             database.update(TABLE_CART, cv, COLUMN_ID + "=?", new String[]{existingId});
             cursor.close();
+
+            // FIREBASE SYNC: Update quantity
+            cloudDb.collection("cart_items").document(existingId).update("quantity", newQty);
+
         } else {
             if (cursor != null) cursor.close();
+            String newId = UUID.randomUUID().toString();
+
             ContentValues cv = new ContentValues();
-            cv.put(COLUMN_ID, UUID.randomUUID().toString());
+            cv.put(COLUMN_ID, newId);
             cv.put(COLUMN_USER_ID, userId);
             cv.put(COLUMN_PRODUCT_ID, productId);
             cv.put(COLUMN_VARIANT_ID, variantId);
             cv.put(COLUMN_QTY, quantityToAdd);
             database.insert(TABLE_CART, null, cv);
+
+            // FIREBASE SYNC: Add new item
+            CartItem newItem = new CartItem(newId, userId, productId, quantityToAdd); // Requires variantId in model ideally, but using standard fields
+            cloudDb.collection("cart_items").document(newId).set(newItem);
         }
     }
 
+    public void updateQuantity(String cartItemId, int newQuantity) {
+        if (newQuantity <= 0) {
+            deleteCartItem(cartItemId);
+        } else {
+            ContentValues cv = new ContentValues();
+            cv.put(COLUMN_QTY, newQuantity);
+            database.update(TABLE_CART, cv, COLUMN_ID + "=?", new String[]{cartItemId});
+
+            // FIREBASE SYNC
+            cloudDb.collection("cart_items").document(cartItemId).update("quantity", newQuantity);
+        }
+    }
+
+    public void deleteCartItem(String cartItemId) {
+        database.delete(TABLE_CART, COLUMN_ID + "=?", new String[]{cartItemId});
+        // FIREBASE SYNC
+        cloudDb.collection("cart_items").document(cartItemId).delete();
+    }
+
+    // READ METHODS (Local Only)
     public ArrayList<CartItem> getCartForUser(String userId) {
         ArrayList<CartItem> list = new ArrayList<>();
         Cursor cursor = database.query(TABLE_CART, null, COLUMN_USER_ID + "=?", new String[]{userId}, null, null, null);
@@ -57,20 +95,6 @@ public class CartItemDB {
             cursor.close();
         }
         return list;
-    }
-
-    public void updateQuantity(String cartItemId, int newQuantity) {
-        if (newQuantity <= 0) {
-            deleteCartItem(cartItemId);
-        } else {
-            ContentValues cv = new ContentValues();
-            cv.put(COLUMN_QTY, newQuantity);
-            database.update(TABLE_CART, cv, COLUMN_ID + "=?", new String[]{cartItemId});
-        }
-    }
-
-    public void deleteCartItem(String cartItemId) {
-        database.delete(TABLE_CART, COLUMN_ID + "=?", new String[]{cartItemId});
     }
 
     public void clearCartForUser(String userId) {

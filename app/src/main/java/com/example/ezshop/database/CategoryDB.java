@@ -6,15 +6,20 @@ import android.database.sqlite.SQLiteDatabase;
 import java.util.ArrayList;
 import java.util.UUID;
 import com.example.ezshop.models.Category;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class CategoryDB {
     private SQLiteDatabase database;
+    private FirebaseFirestore cloudDb;
     private static final String TABLE_CATEGORIES = "categories";
     private static final String COLUMN_ID = "category_id";
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_ICON = "icon_name";
 
-    public CategoryDB(SQLiteDatabase database) { this.database = database; }
+    public CategoryDB(SQLiteDatabase database) {
+        this.database = database;
+        this.cloudDb = FirebaseFirestore.getInstance();
+    }
 
     public String addCategory(Category category) {
         ContentValues cv = new ContentValues();
@@ -24,6 +29,8 @@ public class CategoryDB {
         cv.put(COLUMN_ICON, category.getIconName());
         if(database.insert(TABLE_CATEGORIES, null, cv) != -1) {
             category.setCategoryId(newId);
+            // FIREBASE SYNC
+            cloudDb.collection("categories").document(newId).set(category);
             return newId;
         }
         return null;
@@ -56,10 +63,15 @@ public class CategoryDB {
                 database.delete("categories", null, null);
                 String[] initialCategories = {"Electronics", "Laptops & PCs", "Mobile Phones", "Fashion & Apparel", "Footwear", "Home & Kitchen", "Beauty & Personal Care", "Health & Fitness", "Sports & Outdoors", "Toys & Games", "Automotive Parts", "Books & Stationery", "Groceries", "Pet Supplies", "Office Supplies", "Handmade Crafts"};
                 for (String catName : initialCategories) {
+                    String catId = UUID.randomUUID().toString();
                     ContentValues values = new ContentValues();
-                    values.put("category_id", UUID.randomUUID().toString()); // Fixed to use UUID
+                    values.put("category_id", catId);
                     values.put("name", catName);
                     database.insert("categories", null, values);
+
+                    // FIREBASE SYNC (Push Seeded Categories to Cloud)
+                    Category cloudCat = new Category(catId, catName, "default_icon");
+                    cloudDb.collection("categories").document(catId).set(cloudCat);
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }

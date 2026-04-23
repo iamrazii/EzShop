@@ -6,9 +6,12 @@ import android.database.sqlite.SQLiteDatabase;
 import java.util.ArrayList;
 import java.util.UUID;
 import com.example.ezshop.models.Store;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class StoreDB {
     private SQLiteDatabase database;
+    private FirebaseFirestore cloudDb;
+
     private static final String TABLE_STORES = "stores";
     private static final String COLUMN_ID = "store_id";
     private static final String COLUMN_NAME = "store_name";
@@ -17,7 +20,10 @@ public class StoreDB {
     private static final String COLUMN_STATUS = "status";
     private static final String COLUMN_RATING = "rating";
 
-    public StoreDB(SQLiteDatabase database) { this.database = database; }
+    public StoreDB(SQLiteDatabase database) {
+        this.database = database;
+        this.cloudDb = FirebaseFirestore.getInstance();
+    }
 
     public String addStore(Store store) {
         ContentValues cv = new ContentValues();
@@ -31,9 +37,27 @@ public class StoreDB {
 
         if(database.insert(TABLE_STORES, null, cv) != -1) {
             store.setStoreId(newId);
+
+            // FIREBASE SYNC
+            cloudDb.collection("stores").document(newId).set(store);
             return newId;
         }
         return null;
+    }
+
+    public boolean updateStore(Store store) {
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_NAME, store.getStoreName());
+        cv.put(COLUMN_LOCATION, store.getLocation());
+        cv.put(COLUMN_STATUS, store.getStatus());
+
+        boolean isUpdated = database.update(TABLE_STORES, cv, COLUMN_ID + "=?", new String[]{store.getStoreId()}) > 0;
+
+        // FIREBASE SYNC
+        if (isUpdated) {
+            cloudDb.collection("stores").document(store.getStoreId()).set(store);
+        }
+        return isUpdated;
     }
 
     public Store getStoreById(String storeId) {
@@ -54,14 +78,11 @@ public class StoreDB {
         return store;
     }
 
-    // --- DUMMY FUNCTION FOR TESTING ---
     public String getDummyStoreId() {
         android.database.Cursor cursor = database.rawQuery("SELECT store_id FROM stores LIMIT 1", null);
         String dummyId = null;
         if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                dummyId = cursor.getString(0);
-            }
+            if (cursor.moveToFirst()) { dummyId = cursor.getString(0); }
             cursor.close();
         }
         return dummyId;
@@ -75,13 +96,5 @@ public class StoreDB {
             cursor.close();
         }
         return storeId;
-    }
-
-    public boolean updateStore(Store store) {
-        ContentValues cv = new ContentValues();
-        cv.put(COLUMN_NAME, store.getStoreName());
-        cv.put(COLUMN_LOCATION, store.getLocation());
-        cv.put(COLUMN_STATUS, store.getStatus());
-        return database.update(TABLE_STORES, cv, COLUMN_ID + "=?", new String[]{store.getStoreId()}) > 0;
     }
 }
