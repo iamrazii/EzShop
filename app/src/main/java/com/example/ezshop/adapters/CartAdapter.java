@@ -21,12 +21,12 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
     private final Context context;
     private final ArrayList<CartItem> cartItems;
     private final DBManager dbManager;
-    private final int userId;
+    private final String userId;
     private final OnCartChangedListener listener;
     private final ArrayList<Product> allProducts;
 
     public CartAdapter(Context context, ArrayList<CartItem> cartItems,
-                       DBManager dbManager, int userId, OnCartChangedListener listener) {
+                       DBManager dbManager, String userId, OnCartChangedListener listener) {
         this.context = context;
         this.cartItems = cartItems;
         this.dbManager = dbManager;

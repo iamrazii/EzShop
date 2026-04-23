@@ -12,7 +12,7 @@ public class EditProductActivity extends AppCompatActivity {
 
     private DBManager dbManager;
     private EditText etName, etPrice, etDesc;
-    private int productId;
+    private String productId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +27,7 @@ public class EditProductActivity extends AppCompatActivity {
         etDesc = findViewById(R.id.etUpdateDesc);
 
         // Retrieve data passed from the Fragment
-        productId = getIntent().getIntExtra("PRODUCT_ID", -1);
+        productId = getIntent().getStringExtra("PRODUCT_ID");
         etName.setText(getIntent().getStringExtra("PRODUCT_NAME"));
         etPrice.setText(String.valueOf(getIntent().getDoubleExtra("PRODUCT_PRICE", 0.0)));
         etDesc.setText(getIntent().getStringExtra("PRODUCT_DESC"));

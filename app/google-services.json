@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "285629831806",
+    "project_id": "iamrazii",
+    "storage_bucket": "iamrazii.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:285629831806:android:ce1c556b75703f39cc162f",
+        "android_client_info": {
+          "package_name": "com.example.ezshop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARtlvo8aYRpjc-NukMNMoXdHZZHA64xHA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

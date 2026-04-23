@@ -1,24 +1,28 @@
 package com.example.ezshop.models;
 
 
+import com.google.firebase.firestore.DocumentId;
+
 public class Category {
-    private int categoryId;
+
+    @DocumentId
+    private String categoryId;
     private String name;
     private String iconName;
 
     public Category() {}
 
-    public Category(int categoryId, String name, String iconName) {
+    public Category(String categoryId, String name, String iconName) {
         this.categoryId = categoryId;
         this.name = name;
         this.iconName = iconName;
     }
 
-    public int getCategoryId() {
+    public String getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(String categoryId) {
         this.categoryId = categoryId;
     }
 

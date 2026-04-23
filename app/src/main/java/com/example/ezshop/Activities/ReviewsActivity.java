@@ -49,9 +49,9 @@ public class ReviewsActivity extends AppCompatActivity {
 
         rvAllReviews.setLayoutManager(new LinearLayoutManager(this));
         Intent intent = getIntent();
-        int productId = intent.getIntExtra("PRODUCT_ID", -1);
+        String productId = intent.getStringExtra("PRODUCT_ID");
 
-        if (productId != -1) {
+        if (productId != null) {
             ArrayList<Pair<Review ,String>> allReviews = dbManager.reviewDB.getReviewsByProductId(productId);
             ReviewsAdapter adapter = new ReviewsAdapter(this, allReviews, false);
             rvAllReviews.setAdapter(adapter);

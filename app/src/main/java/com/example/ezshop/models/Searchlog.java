@@ -1,34 +1,38 @@
 package com.example.ezshop.models;
 
+import com.google.firebase.firestore.DocumentId;
+
 public class Searchlog {
-    private int logId;
-    private Integer userId; // Integer allows this to be 'null' for guest searches
+
+    @DocumentId
+    private String logId;
+    private String userId; // Integer allows this to be 'null' for guest searches
     private String searchQuery;
 
     private long timestamp;
 
     public Searchlog() {} // Required empty constructor
 
-    public Searchlog(int logId, Integer userId,String searchQuery, long timestamp) {
+    public Searchlog(String logId, String userId,String searchQuery, long timestamp) {
         this.logId = logId;
         this.userId = userId;
         this.searchQuery = searchQuery;
         this.timestamp = timestamp;
     }
 
-    public int getLogId() {
+    public String getLogId() {
         return logId;
     }
 
-    public void setLogId(int logId) {
+    public void setLogId(String logId) {
         this.logId = logId;
     }
 
-    public Integer getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

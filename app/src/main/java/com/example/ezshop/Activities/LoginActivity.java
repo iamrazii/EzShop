@@ -55,8 +55,8 @@ public class LoginActivity extends AppCompatActivity {
 
         if (found != null) {
             // Auto-detect role based on store ownership!
-            int storeId = dbManager.storeDB.getStoreIdByOwner(found.getUserId());
-            if (storeId != -1) {
+            String storeId = dbManager.storeDB.getStoreIdByOwner(found.getUserId());
+            if (storeId != null) {
                 sessionManager.createLoginSession(found.getUserId(), "seller");
                 sessionManager.setStoreId(storeId);
                 startActivity(new Intent(this, SellerHomeActivity.class));

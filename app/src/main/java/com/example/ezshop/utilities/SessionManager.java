@@ -18,24 +18,24 @@ public class SessionManager {
         editor = prefs.edit();
     }
 
-    public void createLoginSession(int userId, String role) {
+    public void createLoginSession(String userId, String role) {
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
-        editor.putInt(KEY_USER_ID, userId);
+        editor.putString(KEY_USER_ID, userId);
         editor.putString(KEY_ROLE, role);
         editor.apply();
     }
 
-    public void setStoreId(int storeId) {
-        editor.putInt(KEY_STORE_ID, storeId);
+    public void setStoreId(String storeId) {
+        editor.putString(KEY_STORE_ID, storeId);
         editor.apply();
     }
 
-    public int getStoreId() {
-        return prefs.getInt(KEY_STORE_ID, -1);
+    public String getStoreId() {
+        return prefs.getString(KEY_STORE_ID, null);
     }
 
-    public int getUserId() {
-        return prefs.getInt(KEY_USER_ID, -1);
+    public  String getUserId() {
+        return prefs.getString(KEY_USER_ID, null);
     }
 
     public String getUserRole() {

@@ -41,7 +41,7 @@ public class AddProductActivity extends AppCompatActivity {
 
     private DBManager db;
     private ArrayList<Category> categoryList;
-    private int selectedCategoryId = -1;
+    private String selectedCategoryId = null;
     private String selectedLocalImageUri = "";
 
     private CardView cvImagePicker;
@@ -107,7 +107,7 @@ public class AddProductActivity extends AppCompatActivity {
             Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (selectedCategoryId == -1) {
+        if (selectedCategoryId == null) {
             Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -161,15 +161,17 @@ public class AddProductActivity extends AppCompatActivity {
         String desc = etProductDesc.getText().toString().trim();
         String condition = actvCondition.getText().toString().trim();
 
-        User u = new User();
-        Store s = db.storeDB.getStoreById(1);
-        int storeId = s.getStoreId();
+//
 //        SessionManager sm = new SessionManager(this);
-//        int storeId = db.storeDB.getStoreIdByOwner(1);
+//        String userid = sm.getUserId();
+        String u = db.userDB.getDummyUserId();
+//        String storeId = db.storeDB.getStoreIdByOwner(u);
+
+        String storeId = db.storeDB.getDummyStoreId();
 //
 
 
-        if (storeId == -1) {
+        if (storeId == null) {
             Toast.makeText(this, "Error: Store not found!", Toast.LENGTH_SHORT).show();
             btnPublishProduct.setEnabled(true);
             return;
@@ -187,9 +189,9 @@ public class AddProductActivity extends AppCompatActivity {
         newProduct.setSoldCount(0);
         newProduct.setRatingAverage(0.0f);
 
-        long result = db.productDB.addProduct(newProduct);
+        String result = db.productDB.addProduct(newProduct);
 
-        if (result != -1) {
+        if (result != null) {
             Toast.makeText(this, "Product Published Successfully!", Toast.LENGTH_LONG).show();
             finish();
         } else {

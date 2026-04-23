@@ -1,9 +1,13 @@
 package com.example.ezshop.models;
 
+import com.google.firebase.firestore.DocumentId;
+
 public class Product {
-    private int productId;
-    private int storeId;
-    private int categoryId;
+
+    @DocumentId
+    private String productId;
+    private String storeId;
+    private String categoryId;
     private String name;
 
 
@@ -18,8 +22,8 @@ public class Product {
     public Product() {}
 
 
-    public Product(int productId, int soldCount, int weightGrams, double ratingAverage, String condition, double price,
-                   String description,String image ,String name, int categoryId, int storeId) {
+    public Product(String productId, int soldCount, int weightGrams, double ratingAverage, String condition, double price,
+                   String description,String image ,String name, String categoryId, String storeId) {
         this.productId = productId;
         this.soldCount = soldCount;
         this.weightGrams = weightGrams;
@@ -43,27 +47,27 @@ public class Product {
         this.productimage = productimage;
     }
 
-    public int getProductId() {
+    public String getProductId() {
         return productId;
     }
 
-    public void setProductId(int productId) {
+    public void setProductId(String productId) {
         this.productId = productId;
     }
 
-    public int getStoreId() {
+    public String getStoreId() {
         return storeId;
     }
 
-    public void setStoreId(int storeId) {
+    public void setStoreId(String storeId) {
         this.storeId = storeId;
     }
 
-    public int getCategoryId() {
+    public String getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(String categoryId) {
         this.categoryId = categoryId;
     }
 

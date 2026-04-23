@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import java.util.ArrayList;
 
+import java.util.UUID; // Add this import at the top
+
 public class UserDB {
 
     private SQLiteDatabase database; // db conn handed by db manager
@@ -23,18 +25,36 @@ public class UserDB {
         this.database = database;
     }
 
-    public long addUser(User user) {
+    // 1. Change the return type from 'long' to 'String'
+    public String addUser(User user) {
         ContentValues cv = new ContentValues();
+
+        // 2. Generate the unique String ID BEFORE inserting
+        String newUserId = UUID.randomUUID().toString();
+        cv.put(COLUMN_ID, newUserId); // Make sure you put the ID in the database!
+
         cv.put(COLUMN_NAME, user.getName());
         cv.put(COLUMN_EMAIL, user.getEmail());
         cv.put(COLUMN_PASSWORD, user.getPasswordHash());
         cv.put(COLUMN_WALLET, user.getWalletBalance());
         cv.put(COLUMN_ADDRESS, user.getDefaultShippingAddress());
 
-        return database.insert(TABLE_USERS, null, cv);
-    }
+        // 3. database.insert() still returns a long, but we just use it to check for errors
+        long rowInserted = database.insert(TABLE_USERS, null, cv);
 
-    public User getUserById(int userId) {
+        // 4. If rowInserted is NOT -1, it means the save was successful
+        if (rowInserted != -1) {
+            user.setUserId(newUserId); // Attach it to the Java object
+
+            // If you are syncing users to Firebase immediately, do it here:
+            // cloudDb.collection("users").document(newUserId).set(user);
+
+            return newUserId; // Return your new String ID!
+        } else {
+            return null; // Return null if SQLite failed to save it
+        }
+    }
+    public User getUserById(String userId) {
         User user = null;
         Cursor cursor = database.query(
                 TABLE_USERS,
@@ -79,15 +99,28 @@ public class UserDB {
         return database.update(TABLE_USERS, cv, COLUMN_ID + "=?", new String[]{String.valueOf(user.getUserId())});
     }
 
-    public int deleteUser(int userId) {
+    public int deleteUser(String userId) {
         // Returns the number of rows deleted
         return database.delete(TABLE_USERS, COLUMN_ID + "=?", new String[]{String.valueOf(userId)});
+    }
+
+    // --- DUMMY FUNCTION FOR TESTING ---
+    public String getDummyUserId() {
+        android.database.Cursor cursor = database.rawQuery("SELECT user_id FROM users LIMIT 1", null);
+        String dummyId = null;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                dummyId = cursor.getString(0);
+            }
+            cursor.close();
+        }
+        return dummyId;
     }
 
     private User cursorToUser(Cursor cursor) {
         User user = new User();
         // using .getColumnIndexOrThrow() to get error message
-        user.setUserId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)));
+        user.setUserId(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID)));
         user.setName(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME)));
         user.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EMAIL)));
         user.setPasswordHash(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD)));

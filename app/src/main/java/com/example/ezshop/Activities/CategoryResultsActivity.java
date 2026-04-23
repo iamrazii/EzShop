@@ -52,13 +52,13 @@ public class CategoryResultsActivity extends AppCompatActivity {
         });
         rvProducts.setLayoutManager(new GridLayoutManager(this, 2));
         Intent intent = getIntent();
-        int categoryId = intent.getIntExtra("CATEGORY_ID", -1);
+        String categoryId = intent.getStringExtra("CATEGORY_ID");
         String categoryName = intent.getStringExtra("CATEGORY_NAME");
 
         String searchQuery = intent.getStringExtra("SEARCH_QUERY");
 
         if (categoryName!= null) tvTitle.setText(categoryName);
-        if (categoryId!= -1){
+        if (categoryId!= null){
            productlist =  dbManager.productDB.getProductsByCategory(categoryId);
 
            setupAdapter();

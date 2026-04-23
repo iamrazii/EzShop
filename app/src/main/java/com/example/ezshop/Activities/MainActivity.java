@@ -68,23 +68,23 @@ public class MainActivity extends AppCompatActivity {
             store.setRating(4.8);
             store.setStatus("Active");
             // Save it and get its ID so we can assign products to it
-            int storeId = (int) dbManager.storeDB.addStore(store);
+            String storeId =  dbManager.storeDB.addStore(store);
 
             // --- 2. CREATE DUMMY CATEGORIES ---
             Category catLaptop = new Category();
             catLaptop.setName("Laptop");
             catLaptop.setIconName("laptop_icon"); // Make sure this XML file exists in your drawable folder!
-            int laptopCatId = (int) dbManager.categoryDB.addCategory(catLaptop);
+            String laptopCatId =  dbManager.categoryDB.addCategory(catLaptop);
 
             Category catPhone = new Category();
             catPhone.setName("Smartphone");
             catPhone.setIconName("mobile_icon");
-            int phoneCatId = (int) dbManager.categoryDB.addCategory(catPhone);
+            String phoneCatId =  dbManager.categoryDB.addCategory(catPhone);
 
             Category catMonitor = new Category();
             catMonitor.setName("Mouse");
             catMonitor.setIconName("mouse_icon");
-            int monitorCatId = (int) dbManager.categoryDB.addCategory(catMonitor);
+            String monitorCatId = dbManager.categoryDB.addCategory(catMonitor);
 
             // --- 3. CREATE DUMMY PRODUCTS ---
             Product p1 = new Product();

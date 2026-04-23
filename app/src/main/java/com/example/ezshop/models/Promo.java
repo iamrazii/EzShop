@@ -1,24 +1,28 @@
 package com.example.ezshop.models;
 
 
+import com.google.firebase.firestore.DocumentId;
+
 public class Promo {
-    private int promoId;
+
+    @DocumentId
+    private String promoId;
     private String code;
     private double discountPercentage;
 
     public Promo() {}
 
-    public Promo(int promoId, String code, double discountPercentage) {
+    public Promo(String promoId, String code, double discountPercentage) {
         this.promoId = promoId;
         this.code = code;
         this.discountPercentage = discountPercentage;
     }
 
-    public int getPromoId() {
+    public String getPromoId() {
         return promoId;
     }
 
-    public void setPromoId(int promoId) {
+    public void setPromoId(String promoId) {
         this.promoId = promoId;
     }
 

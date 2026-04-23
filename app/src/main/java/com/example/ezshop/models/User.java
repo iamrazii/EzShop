@@ -1,7 +1,11 @@
 package com.example.ezshop.models;
 
+import com.google.firebase.firestore.DocumentId;
+
 public class User {
-    private int userId;
+
+    @DocumentId
+    private String userId;
     private String name;
     private String email;
     private String passwordHash;
@@ -10,7 +14,7 @@ public class User {
 
     public User() {} // Empty constructor required for database parsing
 
-    public User(int userId, String name, String email, String passwordHash, double walletBalance, String defaultShippingAddress) {
+    public User(String userId, String name, String email, String passwordHash, double walletBalance, String defaultShippingAddress) {
         this.userId = userId;
         this.name = name;
         this.email = email;
@@ -19,11 +23,11 @@ public class User {
         this.defaultShippingAddress = defaultShippingAddress;
     }
 
-    public int getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

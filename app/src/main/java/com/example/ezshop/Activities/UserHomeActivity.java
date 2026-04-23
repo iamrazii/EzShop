@@ -85,8 +85,8 @@ public class UserHomeActivity extends AppCompatActivity {
     }
 
     private void loadUserData() {
-        int userId = sessionManager.getUserId();
-        if (userId == -1) return;
+        String userId = sessionManager.getUserId();
+        if (userId == null) return;
         User user = dbManager.userDB.getUserById(userId);
         if (user != null) {
             tvUserName.setText(user.getName());
@@ -102,7 +102,7 @@ public class UserHomeActivity extends AppCompatActivity {
             View chip = inflater.inflate(R.layout.item_category_chip, llCategories, false);
             TextView tvName = chip.findViewById(R.id.tvCategoryName);
             tvName.setText(cat.getName());
-            int catId = cat.getCategoryId();
+            String catId = cat.getCategoryId();
             String catName = cat.getName();
             chip.setOnClickListener(v -> {
                 Intent intent = new Intent(this, CategoryResultsActivity.class);

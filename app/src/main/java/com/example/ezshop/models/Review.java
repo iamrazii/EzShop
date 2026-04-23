@@ -1,16 +1,20 @@
 package com.example.ezshop.models;
 
+import com.google.firebase.firestore.DocumentId;
+
 public class Review {
-    private int reviewId;
-    private int productId;
-    private int userId;
+
+    @DocumentId
+    private String reviewId;
+    private String productId;
+    private String userId;
     private int rating;
     private String comment;
     private String reviewDate; // Kept as String to match "Feb 2022" format from Figma
 
     public Review() {}
 
-    public Review(String reviewDate, String comment, int rating, int userId, int productId, int reviewId) {
+    public Review(String reviewDate, String comment, int rating, String userId, String productId, String reviewId) {
         this.reviewDate = reviewDate;
         this.comment = comment;
         this.rating = rating;
@@ -19,11 +23,11 @@ public class Review {
         this.reviewId = reviewId;
     }
 
-    public int getReviewId() {
+    public String getReviewId() {
         return reviewId;
     }
 
-    public void setReviewId(int reviewId) {
+    public void setReviewId(String reviewId) {
         this.reviewId = reviewId;
     }
 
@@ -51,19 +55,19 @@ public class Review {
         this.rating = rating;
     }
 
-    public int getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public int getProductId() {
+    public String getProductId() {
         return productId;
     }
 
-    public void setProductId(int productId) {
+    public void setProductId(String productId) {
         this.productId = productId;
     }
 }

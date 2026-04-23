@@ -51,8 +51,8 @@ public class SellerProductsFragment extends Fragment {
     }
 
     private void loadSellerProducts() {
-        int userId = sessionManager.getUserId();
-        int storeId = sessionManager.getStoreId();
+        String userId = sessionManager.getUserId();
+        String storeId = sessionManager.getStoreId();
         Store store = dbManager.storeDB.getStoreById(storeId);
 
         ArrayList<Product> products = dbManager.productDB.getProductsForSeller(userId);

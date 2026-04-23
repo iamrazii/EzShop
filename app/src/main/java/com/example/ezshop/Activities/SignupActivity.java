@@ -88,8 +88,8 @@ public class SignupActivity extends AppCompatActivity {
             // Sellers don't need a default shipping address initially
             user.setDefaultShippingAddress("N/A");
 
-            long userId = dbManager.userDB.addUser(user);
-            if (userId == -1) {
+            String userId = dbManager.userDB.addUser(user);
+            if (userId == null) {
                 Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -99,11 +99,11 @@ public class SignupActivity extends AppCompatActivity {
             store.setLocation(storeLocation.isEmpty() ? "Unknown" : storeLocation);
             store.setStatus("Active");
             store.setRating(0.0);
-            store.setOwner_id((int) userId);
+            store.setOwner_id(userId);
 
-            long storeId = dbManager.storeDB.addStore(store);
-            sessionManager.createLoginSession((int) userId, "seller");
-            sessionManager.setStoreId((int) storeId);
+            String storeId = dbManager.storeDB.addStore(store);
+            sessionManager.createLoginSession( userId, "seller");
+            sessionManager.setStoreId(storeId);
 
             Toast.makeText(this, "Store created! Welcome aboard.", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, SellerHomeActivity.class));
@@ -117,13 +117,13 @@ public class SignupActivity extends AppCompatActivity {
 
             user.setDefaultShippingAddress(address);
 
-            long userId = dbManager.userDB.addUser(user);
-            if (userId == -1) {
+            String userId = dbManager.userDB.addUser(user);
+            if (userId == null) {
                 Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            sessionManager.createLoginSession((int) userId, "user");
+            sessionManager.createLoginSession( userId, "user");
             Toast.makeText(this, "Account created! Happy shopping.", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, UserHomeActivity.class));
         }

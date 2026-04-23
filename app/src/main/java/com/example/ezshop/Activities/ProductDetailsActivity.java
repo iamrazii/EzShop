@@ -62,7 +62,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent == null) return;
 
-        int productId = intent.getIntExtra("product_id", intent.getIntExtra("PRODUCT_ID", -1));
+        String productId = intent.getStringExtra("product_id");
 
         tvDetailName.setText(intent.getStringExtra("PRODUCT_NAME"));
         tvDetailPrice.setText("$ " + intent.getDoubleExtra("PRODUCT_PRICE", 0.0));
@@ -87,7 +87,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
             }
         }
 
-        if (productId != -1) {
+        if (productId != null) {
             ArrayList<Pair<Review, String>> productReviews = dbManager.reviewDB.getReviewsByProductId(productId);
             ReviewsAdapter reviewAdapter = new ReviewsAdapter(this, productReviews, true);
             rvReviews.setLayoutManager(new LinearLayoutManager(this));
@@ -108,7 +108,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
                     Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                dbManager.cartItemDB.addToCart(sessionManager.getUserId(), productId, 0, 1);
+                dbManager.cartItemDB.addToCart(sessionManager.getUserId(), productId, "", 1);
                 Toast.makeText(this, "Added to cart! 🛒", Toast.LENGTH_SHORT).show();
             });
         }

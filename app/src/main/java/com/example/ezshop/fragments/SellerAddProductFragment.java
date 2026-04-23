@@ -198,7 +198,7 @@ public class SellerAddProductFragment extends Fragment {
         }
 
         int weight = weightStr.isEmpty() ? 500 : Integer.parseInt(weightStr);
-        int categoryId = 1;
+        String categoryId = null;
         if (categories != null && !categories.isEmpty()) {
             categoryId = categories.get(spinnerCategory.getSelectedItemPosition()).getCategoryId();
         }
@@ -215,7 +215,7 @@ public class SellerAddProductFragment extends Fragment {
         product.setSoldCount(0);
         product.setProductimage(selectedImageUri != null ? selectedImageUri.toString() : "macbook");
 
-        if (dbManager.productDB.addProduct(product) != -1) {
+        if (dbManager.productDB.addProduct(product) != null) {
             Toast.makeText(requireContext(), "Product added!", Toast.LENGTH_SHORT).show();
             clearFields();
             ViewPager2 viewPager = requireActivity().findViewById(R.id.viewPager);

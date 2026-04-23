@@ -52,7 +52,7 @@ public class CartActivity extends AppCompatActivity {
     }
 
     private void loadCart() {
-        int userId = sessionManager.getUserId();
+        String userId = sessionManager.getUserId();
         cartItems = dbManager.cartItemDB.getCartForUser(userId);
         totalPrice = 0;
 

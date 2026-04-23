@@ -1,17 +1,21 @@
 package com.example.ezshop.models;
 
+import com.google.firebase.firestore.DocumentId;
+
 public class Order {
-    private int orderId;
-    private int userId;
-    private Integer promoId; // Using Integer instead of int so it can be 'null' if no promo is used
+
+    @DocumentId
+    private String orderId;
+    private String userId;
+    private String promoId; // Using Integer instead of int so it can be 'null' if no promo is used
     private String shippingAddress;
     private String paymentMethod;
     private double totalPrice;
     private String orderStatus;
     private long createdAt;
 
-    public Order(int orderId, long createdAt, String orderStatus, double totalPrice,
-                 String paymentMethod, String shippingAddress, Integer promoId, int userId) {
+    public Order(String orderId, long createdAt, String orderStatus, double totalPrice,
+                 String paymentMethod, String shippingAddress, String promoId, String userId) {
         this.orderId = orderId;
         this.createdAt = createdAt;
         this.orderStatus = orderStatus;
@@ -24,11 +28,11 @@ public class Order {
 
     public Order() {}
 
-    public int getOrderId() {
+    public String getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(int orderId) {
+    public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
 
@@ -72,19 +76,19 @@ public class Order {
         this.shippingAddress = shippingAddress;
     }
 
-    public int getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public Integer getPromoId() {
+    public String getPromoId() {
         return promoId;
     }
 
-    public void setPromoId(Integer promoId) {
+    public void setPromoId(String promoId) {
         this.promoId = promoId;
     }
 }

@@ -53,9 +53,9 @@ public class SellerDashboardFragment extends Fragment {
     }
 
     private void loadDashboardData() {
-        int storeId = sessionManager.getStoreId();
-        int userId = sessionManager.getUserId();
-        if (storeId == -1 || userId == -1) return;
+        String storeId = sessionManager.getStoreId();
+        String userId = sessionManager.getUserId();
+        if (storeId == null || userId == null) return;
 
         // Fetch User to say hello!
         User user = dbManager.userDB.getUserById(userId);
@@ -82,7 +82,7 @@ public class SellerDashboardFragment extends Fragment {
         setupTopSellers(storeId);
     }
 
-    private void setupTopSellers(int storeId) {
+    private void setupTopSellers(String storeId) {
         // Get the top 5 products specifically for this store
         ArrayList<Product> topProducts = dbManager.productDB.getTopSellingProducts(storeId);
 

@@ -3,14 +3,12 @@ package com.example.ezshop.database;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
 import androidx.annotation.Nullable;
 
 public class DBManager {
 
     public static final String DATABASE_NAME = "EzShopDB";
-    // BUMPED VERSION TO 2: This forces the app to rebuild the fixed tables!
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 2; // Bumped to 3 to force table rebuild with TEXT IDs
 
     private Context context;
     private DBHelper helper;
@@ -26,18 +24,13 @@ public class DBManager {
     public CartItemDB cartItemDB;
     public OrderDB orderDB;
 
-    public DBManager(Context context) {
-        this.context = context;
-    }
+    public DBManager(Context context) { this.context = context; }
 
     public DBManager open() {
         helper = new DBHelper(context);
         database = helper.getWritableDatabase();
-
-        // Turn on Foreign Keys so our tables can strictly link to each other
         database.execSQL("PRAGMA foreign_keys = ON;");
 
-        // hiring the sub workers
         userDB = new UserDB(database);
         categoryDB = new CategoryDB(database);
         storeDB = new StoreDB(database);
@@ -51,9 +44,7 @@ public class DBManager {
         return this;
     }
 
-    public void close() {
-        if (helper != null) helper.close();
-    }
+    public void close() { if (helper != null) helper.close(); }
 
     private class DBHelper extends SQLiteOpenHelper {
         public DBHelper(@Nullable Context context) {
@@ -62,91 +53,16 @@ public class DBManager {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-
-            // Users Table
-            db.execSQL("CREATE TABLE users (" +
-                    "user_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "name TEXT, " + "email TEXT, " + "password_hash TEXT, " +
-                    "wallet_balance REAL, " + "default_shipping_address TEXT)");
-
-            // Category Table
-            db.execSQL("CREATE TABLE categories (" +
-                    "category_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "name TEXT, " + "icon_name TEXT)");
-
-            // Stores Table (FIXED: Added owner_id)
-            db.execSQL("CREATE TABLE stores (" +
-                    "store_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "store_name TEXT, " + "owner_id INTEGER, " + "location TEXT, " + "status TEXT, " + "rating REAL)");
-
-            // Promo Table
-            db.execSQL("CREATE TABLE promos (" +
-                    "promo_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "code TEXT, " +
-                    "discount_percentage REAL)");
-
-            // Products Table
-            db.execSQL("CREATE TABLE products (" +
-                    "product_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "store_id INTEGER, " + "category_id INTEGER, " + "_name TEXT, " +
-                    "_description TEXT, " + "_price REAL, " + "_condition TEXT, " +
-                    "_image TEXT, " + "weight_grams INTEGER, " +
-                    "rating_average REAL, " + "sold_count INTEGER, " +
-                    "FOREIGN KEY(store_id) REFERENCES stores(store_id), " +
-                    "FOREIGN KEY(category_id) REFERENCES categories(category_id))");
-
-            // Reviews Table
-            db.execSQL("CREATE TABLE reviews (" +
-                    "review_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "product_id INTEGER, " +
-                    "user_id INTEGER, " +
-                    "rating INTEGER, " +
-                    "comment TEXT, " +
-                    "review_date TEXT, " +
-                    "FOREIGN KEY(product_id) REFERENCES products(product_id), " +
-                    "FOREIGN KEY(user_id) REFERENCES users(user_id))");
-
-            // Searchlogs Table
-            db.execSQL("CREATE TABLE search_logs (" +
-                    "log_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "user_id INTEGER, " +
-                    "product_id INTEGER, " +
-                    "search_query TEXT, " +
-                    "timestamp INTEGER, " +
-                    "FOREIGN KEY(user_id) REFERENCES users(user_id), " +
-                    "FOREIGN KEY(product_id) REFERENCES products(product_id))");
-
-            // Cart_items Table
-            db.execSQL("CREATE TABLE cart_items (" +
-                    "cart_item_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "user_id INTEGER, " +
-                    "product_id INTEGER, " +
-                    "variant_id INTEGER, " +
-                    "quantity INTEGER, " +
-                    "FOREIGN KEY(user_id) REFERENCES users(user_id), " +
-                    "FOREIGN KEY(product_id) REFERENCES products(product_id))");
-
-            // Orders Table (FIXED: Matched exactly to OrderDB schema)
-            db.execSQL("CREATE TABLE orders (" +
-                    "order_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "user_id INTEGER, " +
-                    "promo_id INTEGER, " +
-                    "shipping_address TEXT, " +
-                    "payment_method TEXT, " +
-                    "total_price REAL, " +
-                    "order_status TEXT, " +
-                    "created_at INTEGER, " +
-                    "FOREIGN KEY(user_id) REFERENCES users(user_id))");
-
-            // OrderItems Table (FIXED: Added price_at_purchase)
-            db.execSQL("CREATE TABLE order_items (" +
-                    "order_item_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "order_id INTEGER, " +
-                    "product_id INTEGER, " +
-                    "price_at_purchase REAL, " +
-                    "quantity INTEGER, " +
-                    "FOREIGN KEY(order_id) REFERENCES orders(order_id), " +
-                    "FOREIGN KEY(product_id) REFERENCES products(product_id))");
+            db.execSQL("CREATE TABLE users (user_id TEXT PRIMARY KEY, name TEXT, email TEXT, password_hash TEXT, wallet_balance REAL, default_shipping_address TEXT)");
+            db.execSQL("CREATE TABLE categories (category_id TEXT PRIMARY KEY, name TEXT, icon_name TEXT)");
+            db.execSQL("CREATE TABLE stores (store_id TEXT PRIMARY KEY, store_name TEXT, owner_id TEXT, location TEXT, status TEXT, rating REAL)");
+            db.execSQL("CREATE TABLE promos (promo_id TEXT PRIMARY KEY, code TEXT, discount_percentage REAL)");
+            db.execSQL("CREATE TABLE products (product_id TEXT PRIMARY KEY, store_id TEXT, category_id TEXT, _name TEXT, _description TEXT, _price REAL, _condition TEXT, _image TEXT, weight_grams INTEGER, rating_average REAL, sold_count INTEGER, FOREIGN KEY(store_id) REFERENCES stores(store_id), FOREIGN KEY(category_id) REFERENCES categories(category_id))");
+            db.execSQL("CREATE TABLE reviews (review_id TEXT PRIMARY KEY, product_id TEXT, user_id TEXT, rating INTEGER, comment TEXT, review_date TEXT, FOREIGN KEY(product_id) REFERENCES products(product_id), FOREIGN KEY(user_id) REFERENCES users(user_id))");
+            db.execSQL("CREATE TABLE search_logs (log_id TEXT PRIMARY KEY, user_id TEXT, product_id TEXT, search_query TEXT, timestamp INTEGER, FOREIGN KEY(user_id) REFERENCES users(user_id), FOREIGN KEY(product_id) REFERENCES products(product_id))");
+            db.execSQL("CREATE TABLE cart_items (cart_item_id TEXT PRIMARY KEY, user_id TEXT, product_id TEXT, variant_id TEXT, quantity INTEGER, FOREIGN KEY(user_id) REFERENCES users(user_id), FOREIGN KEY(product_id) REFERENCES products(product_id))");
+            db.execSQL("CREATE TABLE orders (order_id TEXT PRIMARY KEY, user_id TEXT, promo_id TEXT, shipping_address TEXT, payment_method TEXT, total_price REAL, order_status TEXT, created_at INTEGER, FOREIGN KEY(user_id) REFERENCES users(user_id))");
+            db.execSQL("CREATE TABLE order_items (order_item_id TEXT PRIMARY KEY, order_id TEXT, product_id TEXT, price_at_purchase REAL, quantity INTEGER, FOREIGN KEY(order_id) REFERENCES orders(order_id), FOREIGN KEY(product_id) REFERENCES products(product_id))");
         }
 
         @Override
@@ -161,10 +77,7 @@ public class DBManager {
             db.execSQL("DROP TABLE IF EXISTS stores");
             db.execSQL("DROP TABLE IF EXISTS categories");
             db.execSQL("DROP TABLE IF EXISTS users");
-
-            // Create everything again cleanly
             onCreate(db);
         }
-
     }
 }

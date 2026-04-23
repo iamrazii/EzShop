@@ -82,7 +82,7 @@ public class SellerSettingsFragment extends Fragment {
     }
 
     private void loadStoreData() {
-        int storeId = sessionManager.getStoreId();
+        String storeId = sessionManager.getStoreId();
         currentStore = dbManager.storeDB.getStoreById(storeId);
 
         if (currentStore != null) {

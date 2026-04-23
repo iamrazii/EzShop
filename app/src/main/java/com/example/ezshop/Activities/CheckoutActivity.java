@@ -50,7 +50,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
         tvTotal.setText(String.format("$%.2f", totalPrice));
 
-        int userId = sessionManager.getUserId();
+        String userId = sessionManager.getUserId();
         User user = dbManager.userDB.getUserById(userId);
         if (user != null) {
             etShippingAddress.setText(user.getDefaultShippingAddress());
@@ -80,7 +80,7 @@ public class CheckoutActivity extends AppCompatActivity {
         else if (rbBca.isChecked()) paymentMethod = "BCA";
         else paymentMethod = "Paypal";
 
-        int userId = sessionManager.getUserId();
+        String userId = sessionManager.getUserId();
         ArrayList<CartItem> cartItems = dbManager.cartItemDB.getCartForUser(userId);
         if (cartItems.isEmpty()) {
             Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show();

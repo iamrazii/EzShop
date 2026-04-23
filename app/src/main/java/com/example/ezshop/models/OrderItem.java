@@ -1,15 +1,18 @@
 package com.example.ezshop.models;
 
+import com.google.firebase.firestore.DocumentId;
+
 public class OrderItem {
-    private int orderItemId;
-    private int orderId;
-    private int productId;
+    @DocumentId
+    private String orderItemId;
+    private String orderId;
+    private String productId;
     private double priceAtPurchase;
     private int quantity;
 
     public OrderItem() {}
 
-    public OrderItem(int orderItemId, int orderId, int productId,
+    public OrderItem(String orderItemId, String orderId, String productId,
                       double priceAtPurchase, int quantity) {
         this.orderItemId = orderItemId;
         this.orderId = orderId;
@@ -18,11 +21,11 @@ public class OrderItem {
         this.quantity = quantity;
     }
 
-    public int getOrderItemId() {
+    public String getOrderItemId() {
         return orderItemId;
     }
 
-    public void setOrderItemId(int orderItemId) {
+    public void setOrderItemId(String orderItemId) {
         this.orderItemId = orderItemId;
     }
 
@@ -36,19 +39,19 @@ public class OrderItem {
 
 
 
-    public int getOrderId() {
+    public String getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(int orderId) {
+    public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
 
-    public int getProductId() {
+    public String getProductId() {
         return productId;
     }
 
-    public void setProductId(int productId) {
+    public void setProductId(String productId) {
         this.productId = productId;
     }
 
