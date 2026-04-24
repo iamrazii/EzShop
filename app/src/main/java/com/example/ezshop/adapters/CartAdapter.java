@@ -47,27 +47,33 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
         CartItem item = cartItems.get(position);
         Product product = null;
         for (Product p : allProducts) {
-            if (p.getProductId() == item.getProductId()) { product = p; break; }
+            // FIXED: Used .equals() instead of == for String comparison
+            if (p.getProductId().equals(item.getProductId())) { product = p; break; }
         }
 
         if (product != null) {
             holder.tvName.setText(product.getName());
             holder.tvPrice.setText(String.format("$%.2f", product.getPrice()));
+
+            // FIXED: Handle both local camera photos and default drawables
             String imageName = product.getProductimage();
             if (imageName != null) {
-                int imgId = context.getResources().getIdentifier(
-                    imageName, "drawable", context.getPackageName());
-                if (imgId != 0) holder.ivProductImage.setImageResource(imgId);
+                if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
+                    holder.ivProductImage.setImageURI(android.net.Uri.parse(imageName));
+                } else {
+                    int imgId = context.getResources().getIdentifier(imageName, "drawable", context.getPackageName());
+                    if (imgId != 0) holder.ivProductImage.setImageResource(imgId);
+                }
             }
         }
 
         holder.tvQty.setText(String.valueOf(item.getQuantity()));
 
-        holder.ivPlus.setOnClickListener(v -> {
+        holder.tvPlus.setOnClickListener(v -> {
             dbManager.cartItemDB.updateQuantity(item.getCartItemId(), item.getQuantity() + 1);
             listener.onChanged();
         });
-        holder.ivMinus.setOnClickListener(v -> {
+        holder.tvMinus.setOnClickListener(v -> {
             if (item.getQuantity() > 1) {
                 dbManager.cartItemDB.updateQuantity(item.getCartItemId(), item.getQuantity() - 1);
             } else {
@@ -85,15 +91,16 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
     public int getItemCount() { return cartItems.size(); }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivProductImage, ivDelete, ivPlus, ivMinus;
-        TextView tvName, tvProductVariant, tvPrice, tvQty;
+        ImageView ivProductImage, ivDelete;
+        // FIXED: Changed tvPlus and tvMinus to TextView to match item_cart.xml
+        TextView tvName, tvProductVariant, tvPrice, tvQty, tvPlus, tvMinus;
 
         ViewHolder(View itemView) {
             super(itemView);
             ivProductImage = itemView.findViewById(R.id.ivProductImage);
             ivDelete = itemView.findViewById(R.id.ivDelete);
-            ivPlus = itemView.findViewById(R.id.ivPlus);
-            ivMinus = itemView.findViewById(R.id.ivMinus);
+            tvPlus = itemView.findViewById(R.id.ivPlus);
+            tvMinus = itemView.findViewById(R.id.ivMinus);
             tvName = itemView.findViewById(R.id.tvProductName);
             tvProductVariant = itemView.findViewById(R.id.tvProductVariant);
             tvPrice = itemView.findViewById(R.id.tvProductPrice);
