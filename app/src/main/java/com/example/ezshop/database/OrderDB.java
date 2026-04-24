@@ -97,4 +97,43 @@ public class OrderDB {
             database.endTransaction();
         }
     }
+
+    public ArrayList<Order> getOrdersForUser(String userId) {
+        ArrayList<Order> orders = new ArrayList<>();
+        android.database.Cursor cursor = database.query("orders", null, "user_id=?", new String[]{userId}, null, null, "created_at DESC");
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                Order order = new Order();
+                order.setOrderId(cursor.getString(cursor.getColumnIndexOrThrow("order_id")));
+                order.setUserId(cursor.getString(cursor.getColumnIndexOrThrow("user_id")));
+                order.setPromoId(cursor.getString(cursor.getColumnIndexOrThrow("promo_id")));
+                order.setShippingAddress(cursor.getString(cursor.getColumnIndexOrThrow("shipping_address")));
+                order.setPaymentMethod(cursor.getString(cursor.getColumnIndexOrThrow("payment_method")));
+                order.setTotalPrice(cursor.getDouble(cursor.getColumnIndexOrThrow("total_price")));
+                order.setOrderStatus(cursor.getString(cursor.getColumnIndexOrThrow("order_status")));
+                order.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow("created_at")));
+                orders.add(order);
+            }
+            cursor.close();
+        }
+        return orders;
+    }
+
+    public ArrayList<OrderItem> getOrderItems(String orderId) {
+        ArrayList<OrderItem> items = new ArrayList<>();
+        android.database.Cursor cursor = database.query("order_items", null, "order_id=?", new String[]{orderId}, null, null, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                OrderItem item = new OrderItem();
+                item.setOrderItemId(cursor.getString(cursor.getColumnIndexOrThrow("order_item_id")));
+                item.setOrderId(cursor.getString(cursor.getColumnIndexOrThrow("order_id")));
+                item.setProductId(cursor.getString(cursor.getColumnIndexOrThrow("product_id")));
+                item.setPriceAtPurchase(cursor.getDouble(cursor.getColumnIndexOrThrow("price_at_purchase")));
+                item.setQuantity(cursor.getInt(cursor.getColumnIndexOrThrow("quantity")));
+                items.add(item);
+            }
+            cursor.close();
+        }
+        return items;
+    }
 }

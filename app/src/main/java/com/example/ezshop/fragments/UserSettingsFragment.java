@@ -14,10 +14,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ezshop.Activities.EditUserDetailsActivity;
 import com.example.ezshop.Activities.WelcomeActivity;
 import com.example.ezshop.R;
+import com.example.ezshop.adapters.MyOrdersAdapter;
 import com.example.ezshop.database.DBManager;
+import com.example.ezshop.models.Order;
 import com.example.ezshop.models.User;
 import com.example.ezshop.utilities.SessionManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import java.util.ArrayList;
 
 public class UserSettingsFragment extends Fragment {
 
@@ -49,6 +52,16 @@ public class UserSettingsFragment extends Fragment {
         view.findViewById(R.id.btnLogout).setOnClickListener(v -> showLogoutDialog());
 
         return view;
+    }
+
+    private void loadMyOrders() {
+        String userId = sessionManager.getUserId();
+        if (userId != null) {
+            ArrayList<Order> orders = dbManager.orderDB.getOrdersForUser(userId);
+            MyOrdersAdapter adapter = new MyOrdersAdapter(requireContext(), orders, dbManager, userId);
+            rvMyOrders.setLayoutManager(new LinearLayoutManager(requireContext()));
+            rvMyOrders.setAdapter(adapter);
+        }
     }
 
     private void showLogoutDialog() {
@@ -85,7 +98,7 @@ public class UserSettingsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh data when returning from EditUserDetailsActivity
         loadUserData();
+        loadMyOrders();
     }
 }
