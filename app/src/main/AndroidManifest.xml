@@ -47,6 +47,6 @@
         <activity android:name=".Activities.ReviewsActivity" android:exported="false"/>
         <activity android:name=".Activities.MainActivity" android:exported="false"/>
         <activity android:name=".Activities.EditProductActivity" android:exported="false"/>
-
+        <activity android:name=".Activities.EditUserDetailsActivity" android:exported="false"/>
     </application>
 </manifest>
