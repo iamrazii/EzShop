@@ -102,7 +102,6 @@ public class AddProductActivity extends AppCompatActivity {
         String desc = etProductDesc.getText().toString().trim();
         String condition = actvCondition.getText().toString().trim();
 
-        // 1. Validations
         if (selectedLocalImageUri.isEmpty()) {
             Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show();
             return;
@@ -116,7 +115,6 @@ public class AddProductActivity extends AppCompatActivity {
             return;
         }
 
-        // 2. Start Cloudinary Upload
         uploadToCloudinary(Uri.parse(selectedLocalImageUri));
     }
 
@@ -126,7 +124,7 @@ public class AddProductActivity extends AppCompatActivity {
         Toast.makeText(this, "Uploading image to cloud...", Toast.LENGTH_SHORT).show();
 
         MediaManager.get().upload(uri)
-                .unsigned("ezshop_products") // 🔥 Ensure this matches your Cloudinary Preset
+                .unsigned("ezshop_products")
                 .callback(new UploadCallback() {
                     @Override
                     public void onStart(String requestId) {}
@@ -161,15 +159,7 @@ public class AddProductActivity extends AppCompatActivity {
         String desc = etProductDesc.getText().toString().trim();
         String condition = actvCondition.getText().toString().trim();
 
-//
-//        SessionManager sm = new SessionManager(this);
-//        String userid = sm.getUserId();
-        String u = db.userDB.getDummyUserId();
-//        String storeId = db.storeDB.getStoreIdByOwner(u);
-
         String storeId = db.storeDB.getDummyStoreId();
-//
-
 
         if (storeId == null) {
             Toast.makeText(this, "Error: Store not found!", Toast.LENGTH_SHORT).show();
@@ -183,7 +173,7 @@ public class AddProductActivity extends AppCompatActivity {
         newProduct.setWeightGrams(weight);
         newProduct.setDescription(desc);
         newProduct.setCondition(condition);
-        newProduct.setProductimage(remoteUrl); // Saving the HTTPS URL
+        newProduct.setProductimage(remoteUrl);
         newProduct.setCategoryId(selectedCategoryId);
         newProduct.setStoreId(storeId);
         newProduct.setSoldCount(0);
@@ -228,12 +218,16 @@ public class AddProductActivity extends AppCompatActivity {
 
     private void init() {
         db = new DBManager(this);
-        try { db.open(); } catch (Exception e) { e.printStackTrace(); }
+        try {
+            db.open();
+            db.categoryDB.seedCategories();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        // Cloudinary Init
         try {
             Map<String, Object> config = new HashMap<>();
-            config.put("cloud_name", "da3jabd2w"); // 🔥 Verify your cloud name
+            config.put("cloud_name", "da3jabd2w");
             MediaManager.init(this, config);
         } catch (Exception ignored) {}
 
