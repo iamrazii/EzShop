@@ -49,10 +49,9 @@ public class UserHomeActivity extends AppCompatActivity {
 
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             switch (position) {
-                // Ensure you have these icons in your drawable folder!
                 case 0: tab.setIcon(R.drawable.home_icon); break;
-                case 1: tab.setIcon(R.drawable.ic_search); break;
-                case 2: tab.setIcon(android.R.drawable.ic_menu_add); break; // Swap with your Cart Icon
+                case 1: tab.setIcon(R.drawable.search_icon); break;
+                case 2: tab.setIcon(R.drawable.cart_icon); break;
                 case 3: tab.setIcon(R.drawable.settings); break;
             }
         }).attach();

@@ -56,10 +56,10 @@ public class UserDashboardFragment extends Fragment {
         rvBestSellers.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         rvRecommendations.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // Tap Cart Icon -> Jump to Cart Tab
-        view.findViewById(R.id.ivCart).setOnClickListener(v -> {
+        // Tap Profile Pic -> Jump to Settings/Profile Tab (Tab Index 3)
+        view.findViewById(R.id.cvUserProfile).setOnClickListener(v -> {
             ViewPager2 viewPager = requireActivity().findViewById(R.id.viewPager);
-            if (viewPager != null) viewPager.setCurrentItem(2);
+            if (viewPager != null) viewPager.setCurrentItem(3);
         });
 
         // Tap Search Bar -> Jump to Search Tab
@@ -83,7 +83,6 @@ public class UserDashboardFragment extends Fragment {
         builder.setTitle("Top Up Wallet");
         builder.setMessage("Enter the amount you want to add to your balance.");
 
-        // Programmatically create a nice Material input field
         LinearLayout layout = new LinearLayout(requireContext());
         layout.setOrientation(LinearLayout.VERTICAL);
         int padding = (int) (20 * getResources().getDisplayMetrics().density);
@@ -128,15 +127,13 @@ public class UserDashboardFragment extends Fragment {
 
         User user = dbManager.userDB.getUserById(userId);
         if (user != null) {
-            // Add top-up amount to current balance
             double newBalance = user.getWalletBalance() + topUpAmount;
             user.setWalletBalance(newBalance);
 
-            // Update database
             int rowsUpdated = dbManager.userDB.updateUser(user);
             if (rowsUpdated > 0) {
                 Toast.makeText(requireContext(), String.format("Successfully added $%.2f", topUpAmount), Toast.LENGTH_SHORT).show();
-                loadUserData(); // Refresh the UI to show new balance
+                loadUserData();
             } else {
                 Toast.makeText(requireContext(), "Top up failed. Try again.", Toast.LENGTH_SHORT).show();
             }
@@ -182,7 +179,7 @@ public class UserDashboardFragment extends Fragment {
     private void launchDetail(Product product) {
         Store store = dbManager.storeDB.getStoreById(product.getStoreId());
         Intent intent = new Intent(requireActivity(), ProductDetailsActivity.class);
-        intent.putExtra("product_id", product.getProductId());
+        intent.putExtra("PRODUCT_ID", product.getProductId()); // Fixed to standard uppercase
         intent.putExtra("PRODUCT_NAME", product.getName());
         intent.putExtra("PRODUCT_PRICE", product.getPrice());
         intent.putExtra("PRODUCT_RATING", product.getRatingAverage());
