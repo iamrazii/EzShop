@@ -51,6 +51,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
         sessionManager = new SessionManager(this);
         init();
 
+        // Hide buyer elements if the user is a Seller
         if (sessionManager.getUserType().equalsIgnoreCase("Seller")) {
             prodDetailBottomBar.setVisibility(View.GONE);
             layoutStoreInfo.setVisibility(View.GONE);
@@ -62,21 +63,26 @@ public class ProductDetailsActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent == null) return;
 
-        String productId = intent.getStringExtra("product_id");
+        // FIXED: Effectively final declaration to avoid local variable error in lambda
+        final String productId = intent.hasExtra("PRODUCT_ID") ?
+                intent.getStringExtra("PRODUCT_ID") : intent.getStringExtra("product_id");
 
+        // Set Basic Text Data
         tvDetailName.setText(intent.getStringExtra("PRODUCT_NAME"));
-        tvDetailPrice.setText("$ " + intent.getDoubleExtra("PRODUCT_PRICE", 0.0));
+        tvDetailPrice.setText("$ " + String.format("%.2f", intent.getDoubleExtra("PRODUCT_PRICE", 0.0)));
         tvDetailRating.setText(String.valueOf(intent.getDoubleExtra("PRODUCT_RATING", 0.0)));
         tvDetailSold.setText("Sold " + intent.getIntExtra("PRODUCT_SOLD", 0) + "+");
         tvDetailCondition.setText(": " + intent.getStringExtra("PRODUCT_CONDITION"));
         tvDetailWeight.setText(": " + intent.getIntExtra("PRODUCT_WEIGHT", 0) + " Gram");
 
+        // Set Store Data
         String storeName = intent.getStringExtra("STORE_NAME");
         tvDetailStoreName.setText(": " + (storeName != null ? storeName : "Unknown"));
         tvStoreTitle.setText(storeName != null ? storeName : "Unknown");
         tvStoreLocation.setText("Online • " + intent.getStringExtra("PRODUCT_LOCATION"));
         tvDetailDesc.setText(intent.getStringExtra("PRODUCT_DESCRIPTION"));
 
+        // Set Image Data (Handles both local URI and Drawable strings)
         String imageName = intent.getStringExtra("PRODUCT_IMAGE");
         if (imageName != null) {
             if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
@@ -88,11 +94,13 @@ public class ProductDetailsActivity extends AppCompatActivity {
         }
 
         if (productId != null) {
+            // Load Reviews
             ArrayList<Pair<Review, String>> productReviews = dbManager.reviewDB.getReviewsByProductId(productId);
             ReviewsAdapter reviewAdapter = new ReviewsAdapter(this, productReviews, true);
             rvReviews.setLayoutManager(new LinearLayoutManager(this));
             rvReviews.setAdapter(reviewAdapter);
 
+            // Handle "See All Reviews" visibility
             if (productReviews.size() <= 3) {
                 btnSeeAllReviews.setVisibility(View.GONE);
             } else {
@@ -103,23 +111,24 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 });
             }
 
+            // Handle Add to Cart
             btnAddToCart.setOnClickListener(v -> {
                 if (!sessionManager.isLoggedIn()) {
                     Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                // Adds item to database cart
                 dbManager.cartItemDB.addToCart(sessionManager.getUserId(), productId, "", 1);
                 Toast.makeText(this, "Added to cart! 🛒", Toast.LENGTH_SHORT).show();
             });
         }
     }
 
-    // Inside ProductDetailsActivity.java
-    void init() {
+    private void init() {
         dbManager = new DBManager(this);
         dbManager.open();
 
-        // Standard Views
+        // Bind Views
         btnBack = findViewById(R.id.prodDetailBtnBack);
         ivDetailImage = findViewById(R.id.prodDetailIvDetailImage);
         tvDetailName = findViewById(R.id.prodDetailTvDetailName);
@@ -136,11 +145,12 @@ public class ProductDetailsActivity extends AppCompatActivity {
         btnSeeAllReviews = findViewById(R.id.prodDetailBtnSeeAllReviews);
         rvReviews = findViewById(R.id.prodDetailRvReviews);
 
-        // containers - make sure these IDs exist in the XML provided
+        // Layout Containers
         prodDetailBottomBar = findViewById(R.id.prodDetailBottomBar);
         layoutStoreInfo = findViewById(R.id.layoutStoreInfo);
         rowStorefront = findViewById(R.id.rowStorefront);
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
