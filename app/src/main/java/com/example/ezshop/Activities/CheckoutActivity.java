@@ -6,7 +6,11 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.ezshop.R;
@@ -25,14 +29,23 @@ public class CheckoutActivity extends AppCompatActivity {
     private DBManager dbManager;
     private SessionManager sessionManager;
     private EditText etShippingAddress;
-    private RadioButton rbEzpay, rbBca, rbPaypal;
+    private RadioButton rbEzShopBalance, rbCOD;
     private TextView tvTotal, tvEzpayBalance, tvPromoCode;
     private double totalPrice;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // This prevents the UI from overlapping with the camera notch
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_checkout);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         sessionManager = new SessionManager(this);
         dbManager = new DBManager(this);
@@ -41,14 +54,24 @@ public class CheckoutActivity extends AppCompatActivity {
         totalPrice = getIntent().getDoubleExtra("total_price", 0);
 
         etShippingAddress = findViewById(R.id.etShippingAddress);
-        rbEzpay = findViewById(R.id.rbEzpay);
-        rbBca = findViewById(R.id.rbBca);
-        rbPaypal = findViewById(R.id.rbPaypal);
+        rbEzShopBalance = findViewById(R.id.rbEzShopBalance);
+        rbCOD = findViewById(R.id.rbCOD);
         tvTotal = findViewById(R.id.tvTotal);
         tvEzpayBalance = findViewById(R.id.tvEzpayBalance);
         tvPromoCode = findViewById(R.id.tvPromoCode);
 
         tvTotal.setText(String.format("$%.2f", totalPrice));
+
+        // Make Radio Buttons Mutually Exclusive
+        rbEzShopBalance.setOnClickListener(v -> {
+            rbEzShopBalance.setChecked(true);
+            rbCOD.setChecked(false);
+        });
+
+        rbCOD.setOnClickListener(v -> {
+            rbCOD.setChecked(true);
+            rbEzShopBalance.setChecked(false);
+        });
 
         String userId = sessionManager.getUserId();
         User user = dbManager.userDB.getUserById(userId);
@@ -76,11 +99,18 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         String paymentMethod;
-        if (rbEzpay.isChecked()) paymentMethod = "Ezpay";
-        else if (rbBca.isChecked()) paymentMethod = "BCA";
-        else paymentMethod = "Paypal";
+        if (rbEzShopBalance.isChecked()) paymentMethod = "EzShop Balance";
+        else paymentMethod = "Cash On Delivery";
 
         String userId = sessionManager.getUserId();
+        User user = dbManager.userDB.getUserById(userId);
+
+        // CHECK BALANCE ONLY IF PAYING WITH EZSHOP BALANCE
+        if (paymentMethod.equals("EzShop Balance") && user.getWalletBalance() < totalPrice) {
+            Toast.makeText(this, "Insufficient EzShop balance! Please top up.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         ArrayList<CartItem> cartItems = dbManager.cartItemDB.getCartForUser(userId);
         if (cartItems.isEmpty()) {
             Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show();
@@ -91,7 +121,7 @@ public class CheckoutActivity extends AppCompatActivity {
         ArrayList<OrderItem> orderItems = new ArrayList<>();
         for (CartItem item : cartItems) {
             for (Product p : allProducts) {
-                if (p.getProductId() == item.getProductId()) {
+                if (p.getProductId().equals(item.getProductId())) {
                     OrderItem oi = new OrderItem();
                     oi.setProductId(item.getProductId());
                     oi.setQuantity(item.getQuantity());
@@ -111,6 +141,12 @@ public class CheckoutActivity extends AppCompatActivity {
 
         boolean success = dbManager.orderDB.placeOrder(order, orderItems);
         if (success) {
+            // DEDUCT BALANCE AFTER SUCCESSFUL ORDER IF USING EZSHOP BALANCE
+            if (paymentMethod.equals("EzShop Balance")) {
+                user.setWalletBalance(user.getWalletBalance() - totalPrice);
+                dbManager.userDB.updateUser(user);
+            }
+
             Toast.makeText(this, "Order placed successfully! 🎉", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(this, UserHomeActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

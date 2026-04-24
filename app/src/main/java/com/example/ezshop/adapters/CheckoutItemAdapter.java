@@ -33,18 +33,26 @@ public class CheckoutItemAdapter extends RecyclerView.Adapter<CheckoutItemAdapte
         return new ViewHolder(view);
     }
 
+    // Replace your onBindViewHolder method inside CheckoutItemAdapter.java with this:
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CartItem item = cartItems.get(position);
         for (Product p : allProducts) {
-            if (p.getProductId() == item.getProductId()) {
+            // FIXED BUG HERE:
+            if (p.getProductId().equals(item.getProductId())) {
                 holder.tvName.setText(p.getName());
                 holder.tvPrice.setText(String.format("$%.2f", p.getPrice()));
+
+                // FIXED IMAGES:
                 String imageName = p.getProductimage();
                 if (imageName != null) {
-                    int imgId = context.getResources().getIdentifier(
-                        imageName, "drawable", context.getPackageName());
-                    if (imgId != 0) holder.ivImage.setImageResource(imgId);
+                    if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
+                        holder.ivImage.setImageURI(android.net.Uri.parse(imageName));
+                    } else {
+                        int imgId = context.getResources().getIdentifier(imageName, "drawable", context.getPackageName());
+                        if (imgId != 0) holder.ivImage.setImageResource(imgId);
+                    }
                 }
                 break;
             }
