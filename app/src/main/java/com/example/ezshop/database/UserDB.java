@@ -114,4 +114,5 @@ public class UserDB {
         user.setDefaultShippingAddress(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ADDRESS)));
         return user;
     }
+
 }
