@@ -21,8 +21,9 @@
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
 
+
         <activity
-            android:name=".Activities.MainActivity"
+            android:name=".Activities.WelcomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -44,7 +45,7 @@
         <activity android:name=".Activities.ProductDetailsActivity" android:exported="false"/>
         <activity android:name=".Activities.CategoryResultsActivity" android:exported="false"/>
         <activity android:name=".Activities.ReviewsActivity" android:exported="false"/>
-        <activity android:name=".Activities.WelcomeActivity" android:exported="false"/>
+        <activity android:name=".Activities.MainActivity" android:exported="false"/>
         <activity android:name=".Activities.EditProductActivity" android:exported="false"/>
 
     </application>
