@@ -209,6 +209,38 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
+                <!-- ✨ AI SUMMARY BOX ✨ -->
+                <LinearLayout
+                    android:id="@+id/layoutAiSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_gradient_border"
+                    android:orientation="vertical"
+                    android:padding="12dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✨ AI Review Summary"
+                        android:textColor="#2196F3"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:id="@+id/tvAiSummaryText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Summarizing reviews..."
+                        android:textColor="#333333"
+                        android:textSize="13sp"
+                        android:maxLines="3"
+                        android:ellipsize="end"/>
+                </LinearLayout>
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/prodDetailRvReviews"
                     android:layout_width="match_parent"
@@ -267,7 +299,6 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-
                             android:src="@drawable/profile_seller_pic"
                             android:scaleType="fitCenter"
                             android:padding="8dp"/>
