@@ -42,11 +42,12 @@ public class WelcomeActivity extends AppCompatActivity {
 
     private void seedCategoriesIfNeeded() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-
+        String [] list = {"electronics_icon" , "mobile_icon", "laptop_icon", "headphones_icon", "mic_icon", "console_icon"};
         db.collection("categories").limit(1).get().addOnSuccessListener(snapshots -> {
 
             if (snapshots.isEmpty()) {
                 Log.d("FirebaseSeed", "No categories found. Uploading from Constants...");
+                int i = 0;
                 for (String catName : Constants.CATEGORIES) {
 
                     String newId = db.collection("categories").document().getId();
@@ -54,7 +55,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     Category category = new Category();
                     category.setCategoryId(newId);
                     category.setName(catName);
-                    category.setIconName("default_icon");
+                    category.setIconName(list[i++]);
 
                     db.collection("categories").document(newId).set(category)
                             .addOnSuccessListener(aVoid -> Log.d("FirebaseSeed", "Uploaded: " + catName))

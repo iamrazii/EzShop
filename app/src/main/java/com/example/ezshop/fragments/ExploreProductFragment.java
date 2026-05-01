@@ -112,6 +112,7 @@ public class ExploreProductFragment extends Fragment {
                 Chip chip = new Chip(getContext());
                 chip.setText(searchKeyword);
                 chip.setCheckable(false);
+
                 chip.setBackgroundResource(R.drawable.bg_category);
                 chip.setPadding(32, 16, 32, 16);
                 chip.setTextSize(14f);

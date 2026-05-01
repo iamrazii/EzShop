@@ -80,6 +80,17 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
                     if (imgId != 0) holder.ivProductImage.setImageResource(imgId);
                 }
             }
+
+            if (imageName != null && !imageName.isEmpty()) {
+                com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                        .load(imageName)
+                        .placeholder(android.R.drawable.ic_menu_gallery)
+                        .error(android.R.drawable.ic_dialog_alert)
+                        .into(holder.ivProductImage);
+            } else {
+                holder.ivProductImage.setImageResource(android.R.drawable.ic_menu_gallery);
+            }
+
         }
 
         holder.tvQty.setText(String.valueOf(item.getQuantity()));

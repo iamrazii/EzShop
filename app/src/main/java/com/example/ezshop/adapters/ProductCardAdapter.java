@@ -47,17 +47,19 @@ public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.
         Product product = productList.get(position);
         holder.tvName.setText(product.getName());
         holder.tvPrice.setText(String.format("$%.2f", product.getPrice()));
-
+        holder.tvrating.setText(String.format("",product.getRatingAverage()));
+        holder.tvsold.setText(product.getSoldCount() + "");
         String imageName = product.getProductimage();
-        if (imageName != null) {
-            if (imageName.startsWith("content://") || imageName.startsWith("file://") || imageName.startsWith("http")) {
-                holder.ivImage.setImageURI(android.net.Uri.parse(imageName));
-            } else {
-                int imgId = holder.itemView.getContext().getResources().getIdentifier(imageName, "drawable", holder.itemView.getContext().getPackageName());
-                if (imgId != 0) holder.ivImage.setImageResource(imgId);
-            }
-        }
 
+        if (imageName != null && !imageName.isEmpty()) {
+            com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                    .load(imageName)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_dialog_alert)
+                    .into(holder.ivImage);
+        } else {
+            holder.ivImage.setImageResource(android.R.drawable.ic_menu_gallery);
+        }
         holder.itemView.setOnClickListener(v -> listener.onProductClick(product));
     }
 
@@ -72,13 +74,16 @@ public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivImage;
-        TextView tvName, tvPrice;
+        TextView tvName, tvPrice,tvsold,tvrating;
+
 
         ViewHolder(View itemView) {
             super(itemView);
             ivImage = itemView.findViewById(R.id.ivProductImage);
             tvName = itemView.findViewById(R.id.tvProductName);
             tvPrice = itemView.findViewById(R.id.tvProductPrice);
+            tvrating = itemView.findViewById(R.id.tvProductCardRating);
+            tvsold = itemView.findViewById(R.id.tvProductCardSold);
         }
     }
 }

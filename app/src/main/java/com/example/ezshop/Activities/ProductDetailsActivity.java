@@ -81,14 +81,16 @@ public class ProductDetailsActivity extends AppCompatActivity {
         tvStoreLocation.setText("Online • " + intent.getStringExtra("PRODUCT_LOCATION"));
         tvDetailDesc.setText(intent.getStringExtra("PRODUCT_DESCRIPTION"));
 
-        String imageName = intent.getStringExtra("PRODUCT_IMAGE");
-        if (imageName != null) {
-            if (imageName.startsWith("content://") || imageName.startsWith("file://") || imageName.startsWith("http")) {
-                ivDetailImage.setImageURI(Uri.parse(imageName));
-            } else {
-                int imageId = getResources().getIdentifier(imageName, "drawable", getPackageName());
-                if (imageId != 0) ivDetailImage.setImageResource(imageId);
-            }
+        String imageUrl = intent.getStringExtra("PRODUCT_IMAGE");
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            com.bumptech.glide.Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_dialog_alert)
+                    .into(ivDetailImage);
+        } else {
+            ivDetailImage.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
         if (productId != null) {
