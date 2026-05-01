@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
-import com.example.ezshop.utilities.NetworkUtils;
 import com.example.ezshop.utilities.SessionManager;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -36,11 +35,8 @@ public class LoginActivity extends AppCompatActivity {
         );
 
         findViewById(R.id.btnLogin).setOnClickListener(v -> {
-            if (NetworkUtils.isNetworkAvailable(this)) {
                 attemptCloudLogin();
-            } else {
-                Toast.makeText(this, "Internet required to log in.", Toast.LENGTH_LONG).show();
-            }
+
         });
     }
 

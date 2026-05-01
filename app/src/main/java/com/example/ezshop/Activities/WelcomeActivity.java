@@ -6,6 +6,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ezshop.R;
 import com.example.ezshop.utilities.SessionManager;
+import android.util.Log;
+import com.example.ezshop.models.Category;
+import com.example.ezshop.utilities.Constants;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class WelcomeActivity extends AppCompatActivity {
 
@@ -16,8 +20,7 @@ public class WelcomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sessionManager = new SessionManager(this);
 
-        // PHASE 1: The Bootup Check
-        // If a session exists, go straight to the app. No syncing here!
+        seedCategoriesIfNeeded();
         if (sessionManager.isLoggedIn()) {
             launchRoleDashboard(sessionManager.getUserRole());
             return;
@@ -35,6 +38,35 @@ public class WelcomeActivity extends AppCompatActivity {
         });
     }
 
+
+
+    private void seedCategoriesIfNeeded() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("categories").limit(1).get().addOnSuccessListener(snapshots -> {
+
+            if (snapshots.isEmpty()) {
+                Log.d("FirebaseSeed", "No categories found. Uploading from Constants...");
+                for (String catName : Constants.CATEGORIES) {
+
+                    String newId = db.collection("categories").document().getId();
+
+                    Category category = new Category();
+                    category.setCategoryId(newId);
+                    category.setName(catName);
+                    category.setIconName("default_icon");
+
+                    db.collection("categories").document(newId).set(category)
+                            .addOnSuccessListener(aVoid -> Log.d("FirebaseSeed", "Uploaded: " + catName))
+                            .addOnFailureListener(e -> Log.e("FirebaseSeed", "Failed to upload: " + catName, e));
+                }
+            } else {
+                Log.d("FirebaseSeed", "Categories already exist. Skipping upload.");
+            }
+        }).addOnFailureListener(e -> {
+            Log.e("FirebaseSeed", "Failed to check categories.", e);
+        });
+    }
     private void launchRoleDashboard(String role) {
         if (role == null || role.equalsIgnoreCase("Guest")) {
             sessionManager.logoutUser();

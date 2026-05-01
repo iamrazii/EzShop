@@ -14,7 +14,6 @@ import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Store;
 import com.example.ezshop.models.User;
-import com.example.ezshop.utilities.NetworkUtils;
 import com.example.ezshop.utilities.SessionManager;
 
 import java.util.UUID;
@@ -61,7 +60,7 @@ public class SignupActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btnSignUp).setOnClickListener(v -> {
-            NetworkUtils.requireInternet(this, () -> attemptSignup());
+            attemptSignup();
         });
     }
 

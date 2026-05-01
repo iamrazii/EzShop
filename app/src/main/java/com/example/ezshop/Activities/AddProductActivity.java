@@ -24,14 +24,26 @@ import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Category;
 import com.example.ezshop.models.Product;
+import com.example.ezshop.utilities.Constants;
 import com.example.ezshop.utilities.SessionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.ArrayList;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.IOException;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,8 +51,8 @@ public class AddProductActivity extends AppCompatActivity {
 
     private DBManager db;
     private SessionManager sessionManager;
-    private ArrayList<Category> categoryList;
-    private String selectedCategoryId = null;
+
+    private HashMap<String, String> categoryMap = new HashMap<>();
     private String selectedLocalImageUri = "";
 
     private CardView cvImagePicker;
@@ -48,7 +60,8 @@ public class AddProductActivity extends AppCompatActivity {
     private LinearLayout llImagePlaceholder;
     private MaterialAutoCompleteTextView actvCategory, actvCondition;
     private TextInputEditText etProductName, etProductPrice, etProductWeight, etProductDesc;
-    private MaterialButton btnPublishProduct;
+
+    private MaterialButton btnPublishProduct, btnMagicDescription;
 
     private final ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
             registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
@@ -78,6 +91,24 @@ public class AddProductActivity extends AppCompatActivity {
 
         btnPublishProduct.setOnClickListener(v -> startPublishingProcess());
 
+        btnMagicDescription.setOnClickListener(v -> {
+            String name = etProductName.getText().toString().trim();
+            String category = actvCategory.getText().toString().trim();
+            String condition = actvCondition.getText().toString().trim();
+
+            if (name.isEmpty()) {
+                etProductName.setError("Enter a name first!");
+                etProductName.requestFocus();
+                return;
+            }
+            if (category.isEmpty() || condition.isEmpty()) {
+                Toast.makeText(this, "Select a Category and Condition first!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            generateMagicDescription(name, category, condition);
+        });
+
         cvImagePicker.setOnClickListener(v -> {
             pickMedia.launch(new PickVisualMediaRequest.Builder()
                     .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
@@ -94,12 +125,14 @@ public class AddProductActivity extends AppCompatActivity {
 
     private void startPublishingProcess() {
         String name = etProductName.getText().toString().trim();
+        String category = actvCategory.getText().toString().trim();
         String priceStr = etProductPrice.getText().toString().trim();
         String weightStr = etProductWeight.getText().toString().trim();
         String desc = etProductDesc.getText().toString().trim();
         String condition = actvCondition.getText().toString().trim();
 
-        if (selectedLocalImageUri.isEmpty() || selectedCategoryId == null || name.isEmpty() || priceStr.isEmpty() || weightStr.isEmpty() || desc.isEmpty() || condition.isEmpty()) {
+        // CHANGED: Checking category.isEmpty() instead of selectedCategoryId
+        if (selectedLocalImageUri.isEmpty() || category.isEmpty() || name.isEmpty() || priceStr.isEmpty() || weightStr.isEmpty() || desc.isEmpty() || condition.isEmpty()) {
             Toast.makeText(this, "Please fill out all fields and select an image.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -137,6 +170,9 @@ public class AddProductActivity extends AppCompatActivity {
 
     private void saveProductToFirebase(String remoteUrl) {
         String name = etProductName.getText().toString().trim();
+        String categoryName = actvCategory.getText().toString().trim();
+        String realCategoryId = categoryMap.get(categoryName);
+
         double price = Double.parseDouble(etProductPrice.getText().toString().trim());
         int weight = Integer.parseInt(etProductWeight.getText().toString().trim());
         String desc = etProductDesc.getText().toString().trim();
@@ -144,8 +180,9 @@ public class AddProductActivity extends AppCompatActivity {
 
         String storeId = sessionManager.getStoreId();
 
-        if (storeId == null) {
-            Toast.makeText(this, "Error: Store ID missing!", Toast.LENGTH_SHORT).show();
+        // CHANGED: Ensure the real UUID was successfully found in the map
+        if (storeId == null || realCategoryId == null) {
+            Toast.makeText(this, "Error: Missing Store ID or Category data syncing.", Toast.LENGTH_SHORT).show();
             runOnUiThread(() -> {
                 btnPublishProduct.setEnabled(true);
                 btnPublishProduct.setText("Publish Product");
@@ -160,7 +197,8 @@ public class AddProductActivity extends AppCompatActivity {
         newProduct.setDescription(desc);
         newProduct.setCondition(condition);
         newProduct.setProductimage(remoteUrl);
-        newProduct.setCategoryId(selectedCategoryId);
+        // CHANGED: Set the actual UUID here
+        newProduct.setCategoryId(realCategoryId);
         newProduct.setStoreId(storeId);
         newProduct.setSoldCount(0);
         newProduct.setRatingAverage(0.0f);
@@ -176,27 +214,29 @@ public class AddProductActivity extends AppCompatActivity {
     }
 
     private void setupDropdowns() {
-        db.categoryDB.getAllCategories().addOnSuccessListener(this, queryDocumentSnapshots -> {
-            categoryList = new ArrayList<>();
-            ArrayList<String> categoryNames = new ArrayList<>();
+        // Populates UI instantly
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                Constants.CATEGORIES
+        );
+        actvCategory.setAdapter(categoryAdapter);
 
-            for (DocumentSnapshot doc : queryDocumentSnapshots) {
+        // CHANGED: Secretly grab the UUIDs from Firestore in the background to build the mapping
+        FirebaseFirestore.getInstance().collection("categories").get().addOnSuccessListener(snapshots -> {
+            for (DocumentSnapshot doc : snapshots) {
                 Category c = doc.toObject(Category.class);
                 if (c != null) {
-                    categoryList.add(c);
-                    categoryNames.add(c.getName());
+                    categoryMap.put(c.getName(), c.getCategoryId());
                 }
             }
-
-            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoryNames);
-            actvCategory.setAdapter(categoryAdapter);
-            actvCategory.setOnItemClickListener((parent, view, position, id) -> {
-                selectedCategoryId = categoryList.get(position).getCategoryId();
-            });
         });
 
-        String[] conditions = new String[]{"New", "Used - Like New", "Used - Fair"};
-        ArrayAdapter<String> conditionAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, conditions);
+        ArrayAdapter<String> conditionAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                Constants.CONDITIONS
+        );
         actvCondition.setAdapter(conditionAdapter);
     }
 
@@ -230,6 +270,106 @@ public class AddProductActivity extends AppCompatActivity {
         etProductWeight = findViewById(R.id.AddProdetProductWeight);
         etProductDesc = findViewById(R.id.AddProdetProductDesc);
         btnPublishProduct = findViewById(R.id.AddProdbtnPublishProduct);
+
+        // Initialized the AI button
+        btnMagicDescription = findViewById(R.id.AddProdbtnMagicDescription);
+    }
+
+    private void generateMagicDescription(String productName, String category, String condition) {
+
+        // 1. Show loading state using the correct variable
+        etProductDesc.setText(" AI is writing your description... please wait.");
+        btnMagicDescription.setEnabled(false);
+
+        // 2. Build the Prompt
+        String prompt = "You are an expert e-commerce copywriter. Write a compelling, " +
+                "3-sentence product description for a " + condition +
+                " item called '" + productName + "' in the " + category + " category. " +
+                "Do not include any greetings, hashtags, or formatting. Just pure text.";
+
+        // 3. Package the prompt into the exact JSON format the Gemini API expects
+        JSONObject jsonBody = new JSONObject();
+        try {
+            JSONArray contents = new JSONArray();
+            JSONObject parts = new JSONObject();
+            parts.put("text", prompt);
+
+            JSONObject message = new JSONObject();
+            message.put("parts", new JSONArray().put(parts));
+
+            contents.put(message);
+            jsonBody.put("contents", contents);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String apiKey = "AIzaSyBwn8es3W8QxdQ1PnnmcLIJFcUker2gf3E".trim(); // API KEY
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
+        OkHttpClient client = new OkHttpClient();
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
+
+        android.util.Log.d("AI_TEST", "Calling URL: " + url);
+        Request request = new Request.Builder().url(url).post(body).build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                // Handle no internet or failed connection
+                runOnUiThread(() -> {
+                    btnMagicDescription.setEnabled(true);
+                    etProductDesc.setText(""); // Fixed variable name
+                    Toast.makeText(AddProductActivity.this, "Network Error: Check your connection.", Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    try {
+                        // Extract the text from the complex JSON response
+                        String responseData = response.body().string();
+                        JSONObject jsonObject = new JSONObject(responseData);
+
+                        String generatedText = jsonObject.getJSONArray("candidates")
+                                .getJSONObject(0)
+                                .getJSONObject("content")
+                                .getJSONArray("parts")
+                                .getJSONObject(0)
+                                .getString("text");
+
+                        // Safely update the EditText on the Main UI Thread
+                        runOnUiThread(() -> {
+                            btnMagicDescription.setEnabled(true);
+                            etProductDesc.setText(generatedText.trim()); // Fixed variable name
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        runOnUiThread(() -> {
+                            btnMagicDescription.setEnabled(true);
+                            Toast.makeText(AddProductActivity.this, "Error parsing AI response.", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }  else {
+                    // Grab the EXACT error message from Google's servers
+                    String errorBody = "Unknown Error";
+                    try {
+                        if (response.body() != null) {
+                            errorBody = response.body().string();
+                        }
+                    } catch (IOException ignored) {}
+
+                    final String finalError = errorBody;
+                    android.util.Log.e("AI_TEST", "Google API Error Body: " + finalError);
+
+                    runOnUiThread(() -> {
+                        btnMagicDescription.setEnabled(true);
+                        Toast.makeText(AddProductActivity.this, "API Error: " + response.code(), Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        });
     }
 
     @Override
