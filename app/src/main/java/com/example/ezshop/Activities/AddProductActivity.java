@@ -53,6 +53,9 @@ public class AddProductActivity extends AppCompatActivity {
     private SessionManager sessionManager;
 
     private HashMap<String, String> categoryMap = new HashMap<>();
+    // Dictionary for auto-tagging
+    private HashMap<String, String> autoTagRules;
+
     private String selectedLocalImageUri = "";
 
     private CardView cvImagePicker;
@@ -89,6 +92,9 @@ public class AddProductActivity extends AppCompatActivity {
         init();
         setupDropdowns();
 
+        // Activate the smart category auto-tagger
+        setupAutoTagging();
+
         btnPublishProduct.setOnClickListener(v -> startPublishingProcess());
 
         btnMagicDescription.setOnClickListener(v -> {
@@ -123,6 +129,81 @@ public class AddProductActivity extends AppCompatActivity {
         findViewById(R.id.AddProdbtnBack).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
     }
 
+    // ✨ EXACT CATEGORY MATCHING AI AUTO-TAGGER
+    private void setupAutoTagging() {
+        autoTagRules = new HashMap<>();
+
+        // 1. Mobile Phones
+        autoTagRules.put("phone", "Mobile Phones");
+        autoTagRules.put("iphone", "Mobile Phones");
+        autoTagRules.put("samsung", "Mobile Phones");
+        autoTagRules.put("pixel", "Mobile Phones");
+        autoTagRules.put("smartphone", "Mobile Phones");
+
+        // 2. Laptops
+        autoTagRules.put("laptop", "Laptops");
+        autoTagRules.put("macbook", "Laptops");
+        autoTagRules.put("thinkpad", "Laptops");
+        autoTagRules.put("chromebook", "Laptops");
+
+        // 3. Headphones
+        autoTagRules.put("headphone", "Headphones");
+        autoTagRules.put("earbud", "Headphones");
+        autoTagRules.put("airpod", "Headphones");
+        autoTagRules.put("headset", "Headphones");
+
+        // 4. Microphone
+        autoTagRules.put("mic", "Microphone");
+        autoTagRules.put("microphone", "Microphone");
+
+        // 5. Consoles
+        autoTagRules.put("playstation", "Consoles");
+        autoTagRules.put("ps4", "Consoles");
+        autoTagRules.put("ps5", "Consoles");
+        autoTagRules.put("xbox", "Consoles");
+        autoTagRules.put("nintendo", "Consoles");
+        autoTagRules.put("switch", "Consoles");
+        autoTagRules.put("console", "Consoles");
+
+        // 6. Electronics (Catch-all for general tech)
+        autoTagRules.put("tv", "Electronics");
+        autoTagRules.put("camera", "Electronics");
+        autoTagRules.put("watch", "Electronics");
+        autoTagRules.put("speaker", "Electronics");
+        autoTagRules.put("charger", "Electronics");
+        autoTagRules.put("mouse", "Electronics");
+        autoTagRules.put("keyboard", "Electronics");
+
+        etProductName.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                // Convert whatever they type to lowercase so it matches our dictionary perfectly
+                String inputName = s.toString().toLowerCase().trim();
+
+                for (Map.Entry<String, String> entry : autoTagRules.entrySet()) {
+                    // Check if the product name contains one of our keywords
+                    if (inputName.contains(entry.getKey())) {
+                        String predictedCategory = entry.getValue();
+
+                        // Only update if it's not already selected (prevents UI flickering)
+                        if (!actvCategory.getText().toString().equals(predictedCategory)) {
+                            // false prevents the dropdown menu from popping open on the screen
+                            actvCategory.setText(predictedCategory, false);
+                            Toast.makeText(AddProductActivity.this, "Auto-tagged: " + predictedCategory + " ✨", Toast.LENGTH_SHORT).show();
+                        }
+                        break; // Stop searching once we find the first match
+                    }
+                }
+            }
+        });
+    }
+
     private void startPublishingProcess() {
         String name = etProductName.getText().toString().trim();
         String category = actvCategory.getText().toString().trim();
@@ -131,7 +212,6 @@ public class AddProductActivity extends AppCompatActivity {
         String desc = etProductDesc.getText().toString().trim();
         String condition = actvCondition.getText().toString().trim();
 
-        // CHANGED: Checking category.isEmpty() instead of selectedCategoryId
         if (selectedLocalImageUri.isEmpty() || category.isEmpty() || name.isEmpty() || priceStr.isEmpty() || weightStr.isEmpty() || desc.isEmpty() || condition.isEmpty()) {
             Toast.makeText(this, "Please fill out all fields and select an image.", Toast.LENGTH_SHORT).show();
             return;
@@ -180,7 +260,6 @@ public class AddProductActivity extends AppCompatActivity {
 
         String storeId = sessionManager.getStoreId();
 
-        // CHANGED: Ensure the real UUID was successfully found in the map
         if (storeId == null || realCategoryId == null) {
             Toast.makeText(this, "Error: Missing Store ID or Category data syncing.", Toast.LENGTH_SHORT).show();
             runOnUiThread(() -> {
@@ -197,7 +276,6 @@ public class AddProductActivity extends AppCompatActivity {
         newProduct.setDescription(desc);
         newProduct.setCondition(condition);
         newProduct.setProductimage(remoteUrl);
-        // CHANGED: Set the actual UUID here
         newProduct.setCategoryId(realCategoryId);
         newProduct.setStoreId(storeId);
         newProduct.setSoldCount(0);
@@ -214,7 +292,6 @@ public class AddProductActivity extends AppCompatActivity {
     }
 
     private void setupDropdowns() {
-        // Populates UI instantly
         ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_dropdown_item_1line,
@@ -222,7 +299,6 @@ public class AddProductActivity extends AppCompatActivity {
         );
         actvCategory.setAdapter(categoryAdapter);
 
-        // CHANGED: Secretly grab the UUIDs from Firestore in the background to build the mapping
         FirebaseFirestore.getInstance().collection("categories").get().addOnSuccessListener(snapshots -> {
             for (DocumentSnapshot doc : snapshots) {
                 Category c = doc.toObject(Category.class);
@@ -271,23 +347,19 @@ public class AddProductActivity extends AppCompatActivity {
         etProductDesc = findViewById(R.id.AddProdetProductDesc);
         btnPublishProduct = findViewById(R.id.AddProdbtnPublishProduct);
 
-        // Initialized the AI button
         btnMagicDescription = findViewById(R.id.AddProdbtnMagicDescription);
     }
 
     private void generateMagicDescription(String productName, String category, String condition) {
 
-        // 1. Show loading state using the correct variable
         etProductDesc.setText(" AI is writing your description... please wait.");
         btnMagicDescription.setEnabled(false);
 
-        // 2. Build the Prompt
         String prompt = "You are an expert e-commerce copywriter. Write a compelling, " +
                 "3-sentence product description for a " + condition +
                 " item called '" + productName + "' in the " + category + " category. " +
                 "Do not include any greetings, hashtags, or formatting. Just pure text.";
 
-        // 3. Package the prompt into the exact JSON format the Gemini API expects
         JSONObject jsonBody = new JSONObject();
         try {
             JSONArray contents = new JSONArray();
@@ -315,10 +387,9 @@ public class AddProductActivity extends AppCompatActivity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                // Handle no internet or failed connection
                 runOnUiThread(() -> {
                     btnMagicDescription.setEnabled(true);
-                    etProductDesc.setText(""); // Fixed variable name
+                    etProductDesc.setText("");
                     Toast.makeText(AddProductActivity.this, "Network Error: Check your connection.", Toast.LENGTH_SHORT).show();
                 });
             }
@@ -327,7 +398,6 @@ public class AddProductActivity extends AppCompatActivity {
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
                     try {
-                        // Extract the text from the complex JSON response
                         String responseData = response.body().string();
                         JSONObject jsonObject = new JSONObject(responseData);
 
@@ -338,10 +408,9 @@ public class AddProductActivity extends AppCompatActivity {
                                 .getJSONObject(0)
                                 .getString("text");
 
-                        // Safely update the EditText on the Main UI Thread
                         runOnUiThread(() -> {
                             btnMagicDescription.setEnabled(true);
-                            etProductDesc.setText(generatedText.trim()); // Fixed variable name
+                            etProductDesc.setText(generatedText.trim());
                         });
 
                     } catch (Exception e) {
@@ -352,7 +421,6 @@ public class AddProductActivity extends AppCompatActivity {
                         });
                     }
                 }  else {
-                    // Grab the EXACT error message from Google's servers
                     String errorBody = "Unknown Error";
                     try {
                         if (response.body() != null) {
