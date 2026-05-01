@@ -2,6 +2,7 @@ package com.example.ezshop.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
@@ -30,10 +31,17 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private DBManager dbManager;
     private SessionManager sessionManager;
-    private EditText etShippingAddress;
+    private EditText etShippingAddress, etPromoCode;
     private RadioButton rbEzShopBalance, rbCOD;
-    private TextView tvTotal, tvEzpayBalance, tvPromoCode;
+    private TextView tvTotal, tvEzpayBalance;
+    private Button btnApplyPromo;
+
+    // Tracking Prices and Promos
+    private double originalPrice;
     private double totalPrice;
+    private double discountAmount = 0;
+    private String appliedPromoCode = null;
+
     private User currentUser;
     private ArrayList<CartItem> currentCart;
 
@@ -53,18 +61,25 @@ public class CheckoutActivity extends AppCompatActivity {
         dbManager = new DBManager(this);
         dbManager.open();
 
-        totalPrice = getIntent().getDoubleExtra("total_price", 0);
+        // Save original price and initialize total price
+        originalPrice = getIntent().getDoubleExtra("total_price", 0);
+        totalPrice = originalPrice;
 
         etShippingAddress = findViewById(R.id.etShippingAddress);
         rbEzShopBalance = findViewById(R.id.rbEzShopBalance);
         rbCOD = findViewById(R.id.rbCOD);
         tvTotal = findViewById(R.id.tvTotal);
         tvEzpayBalance = findViewById(R.id.tvEzpayBalance);
-        tvPromoCode = findViewById(R.id.tvPromoCode);
+        etPromoCode = findViewById(R.id.etPromoCode);
+        btnApplyPromo = findViewById(R.id.btnApplyPromo);
+
         RecyclerView rvItems = findViewById(R.id.rvCheckoutItems);
         rvItems.setLayoutManager(new LinearLayoutManager(this));
 
-        tvTotal.setText(String.format("$%.2f", totalPrice));
+        updateTotalDisplay();
+
+        // Promo Button Listener
+        btnApplyPromo.setOnClickListener(v -> applyPromoLogic());
 
         rbEzShopBalance.setOnClickListener(v -> {
             rbEzShopBalance.setChecked(true);
@@ -78,7 +93,6 @@ public class CheckoutActivity extends AppCompatActivity {
 
         String userId = sessionManager.getUserId();
 
-        // Async Loading
         dbManager.userDB.getUserById(userId).addOnSuccessListener(this, doc -> {
             if (doc.exists()) {
                 currentUser = doc.toObject(User.class);
@@ -93,12 +107,77 @@ public class CheckoutActivity extends AppCompatActivity {
             rvItems.setAdapter(new CheckoutItemAdapter(this, currentCart, dbManager));
         });
 
-        tvPromoCode.setText("EZLHAPPYS (Discount 20%)");
-
         findViewById(R.id.ivBack).setOnClickListener(v -> finish());
         findViewById(R.id.btnOrderNow).setOnClickListener(v -> placeOrder());
     }
 
+    // --- PROMO LOGIC ---
+    private void applyPromoLogic() {
+        String code = etPromoCode.getText().toString().trim().toLowerCase();
+
+        if (code.isEmpty()) {
+            Toast.makeText(this, "Please enter a promo code", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Reset previous discount before applying new one
+        discountAmount = 0;
+        appliedPromoCode = null;
+
+        // Hardcoded Promos with Minimum Spend Rules
+        switch (code) {
+            case "ezshop10":
+                if (originalPrice >= 50) applyDiscount(10, code);
+                else showMinSpendError(50);
+                break;
+            case "ezshop20":
+                if (originalPrice >= 100) applyDiscount(20, code);
+                else showMinSpendError(100);
+                break;
+            case "ezshop50":
+                if (originalPrice >= 200) applyDiscount(50, code);
+                else showMinSpendError(200);
+                break;
+            case "ezshop100":
+                if (originalPrice >= 400) applyDiscount(100, code);
+                else showMinSpendError(400);
+                break;
+            case "ezshop200":
+                if (originalPrice >= 800) applyDiscount(200, code);
+                else showMinSpendError(800);
+                break;
+            default:
+                Toast.makeText(this, "Invalid Promo Code", Toast.LENGTH_SHORT).show();
+                updateTotalDisplay(); // Resets back to original if they typed a bad code
+                break;
+        }
+    }
+
+    private void applyDiscount(double discount, String code) {
+        discountAmount = discount;
+        appliedPromoCode = code;
+        Toast.makeText(this, "Promo Applied! You saved $" + discount, Toast.LENGTH_SHORT).show();
+        updateTotalDisplay();
+    }
+
+    private void showMinSpendError(double minSpend) {
+        Toast.makeText(this, "Cart must be over $" + minSpend + " to use this promo", Toast.LENGTH_LONG).show();
+        updateTotalDisplay(); // Reset to original price
+    }
+
+    private void updateTotalDisplay() {
+        totalPrice = originalPrice - discountAmount;
+        // Ensure total price doesn't drop below zero
+        if (totalPrice < 0) totalPrice = 0;
+
+        if (discountAmount > 0) {
+            tvTotal.setText(String.format("$%.2f (Saved $%.2f)", totalPrice, discountAmount));
+        } else {
+            tvTotal.setText(String.format("$%.2f", totalPrice));
+        }
+    }
+
+    // --- ORDER PLACEMENT ---
     private void placeOrder() {
         if (currentUser == null || currentCart == null || currentCart.isEmpty()) {
             Toast.makeText(this, "Data is still loading or cart is empty", Toast.LENGTH_SHORT).show();
@@ -118,7 +197,6 @@ public class CheckoutActivity extends AppCompatActivity {
             return;
         }
 
-        // We must fetch products one last time to capture the exact price at checkout
         dbManager.productDB.getAllProducts().addOnSuccessListener(this, prodSnap -> {
             ArrayList<Product> allProducts = new ArrayList<>();
             for (DocumentSnapshot doc : prodSnap) allProducts.add(doc.toObject(Product.class));
@@ -142,9 +220,9 @@ public class CheckoutActivity extends AppCompatActivity {
             order.setShippingAddress(address);
             order.setPaymentMethod(paymentMethod);
             order.setTotalPrice(totalPrice);
-            order.setPromoId(null);
+            // Save the applied promo code to Firebase
+            order.setPromoId(appliedPromoCode);
 
-            // Using the massive Firebase Batch Writer we built
             dbManager.orderDB.placeOrder(order, orderItems).addOnSuccessListener(this, aVoid -> {
 
                 if (paymentMethod.equals("EzShop Balance")) {
@@ -152,12 +230,10 @@ public class CheckoutActivity extends AppCompatActivity {
                     dbManager.userDB.updateUser(currentUser);
                 }
 
-                // Increment sold counts
                 for (OrderItem item : orderItems) {
                     dbManager.productDB.incrementSoldCount(item.getProductId(), item.getQuantity());
                 }
 
-                // Clear the Cart Items from Firebase!
                 for (CartItem cItem : currentCart) {
                     dbManager.cartItemDB.deleteCartItem(cItem.getCartItemId());
                 }
