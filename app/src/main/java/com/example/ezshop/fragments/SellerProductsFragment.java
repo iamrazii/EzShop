@@ -19,6 +19,8 @@ import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Product;
 import com.example.ezshop.models.Store;
 import com.example.ezshop.utilities.SessionManager;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import java.util.ArrayList;
 
 public class SellerProductsFragment extends Fragment {
@@ -51,62 +53,65 @@ public class SellerProductsFragment extends Fragment {
     }
 
     private void loadSellerProducts() {
-        String userId = sessionManager.getUserId();
         String storeId = sessionManager.getStoreId();
-        Store store = dbManager.storeDB.getStoreById(storeId);
+        if (storeId == null) return;
 
-        ArrayList<Product> products = dbManager.productDB.getProductsForSeller(userId);
+        dbManager.storeDB.getStoreById(storeId).addOnSuccessListener(storeSnap -> {
+            if (!isAdded() || getContext() == null) return;
+            Store store = storeSnap.toObject(Store.class);
 
-        adapter = new SellerProductAdapter(requireContext(), products,
+            dbManager.productDB.getProductsForSeller(storeId).addOnSuccessListener(prodSnap -> {
+                if (!isAdded() || getContext() == null) return;
 
-                // Inside SellerProductsFragment.java loadSellerProducts()
-                product -> {
-                    Intent intent = new Intent(requireContext(), ProductDetailsActivity.class);
-                    intent.putExtra("product_id", product.getProductId());
-                    intent.putExtra("PRODUCT_NAME", product.getName());
-                    intent.putExtra("PRODUCT_PRICE", product.getPrice());
-                    intent.putExtra("PRODUCT_DESCRIPTION", product.getDescription()); // Match this key!
-                    intent.putExtra("PRODUCT_CONDITION", product.getCondition());   // Add this!
-                    intent.putExtra("PRODUCT_WEIGHT", product.getWeightGrams());     // Add this!
-                    intent.putExtra("PRODUCT_IMAGE", product.getProductimage());
-                    intent.putExtra("PRODUCT_SOLD", product.getSoldCount());
-                    intent.putExtra("PRODUCT_RATING", product.getRatingAverage());
+                ArrayList<Product> products = new ArrayList<>();
+                for (DocumentSnapshot doc : prodSnap) products.add(doc.toObject(Product.class));
 
-                    // Pass store info if available
-                    if (store != null) {
-                        intent.putExtra("STORE_NAME", store.getStoreName());
-                        intent.putExtra("PRODUCT_LOCATION", store.getLocation());
-                    }
-                    startActivity(intent);
-                },
-
-                product -> {
-                    Intent intent = new Intent(requireContext(), EditProductActivity.class);
-                    intent.putExtra("PRODUCT_ID", product.getProductId());
-                    intent.putExtra("PRODUCT_NAME", product.getName());
-                    intent.putExtra("PRODUCT_PRICE", product.getPrice());
-                    intent.putExtra("PRODUCT_DESC", product.getDescription());
-                    startActivity(intent);
-                },
-
-                product -> {
-                    boolean isDeleted = dbManager.productDB.deleteProduct(product.getProductId());
-                    if (isDeleted) {
-                        Toast.makeText(requireContext(), "Product removed", Toast.LENGTH_SHORT).show();
-                        loadSellerProducts();
-                    } else {
-                        Toast.makeText(requireContext(), "Delete failed", Toast.LENGTH_SHORT).show();
-                    }
-                }
-        );
-        rvSellerProducts.setAdapter(adapter);
+                adapter = new SellerProductAdapter(requireContext(), products,
+                        product -> {
+                            Intent intent = new Intent(requireContext(), ProductDetailsActivity.class);
+                            intent.putExtra("product_id", product.getProductId());
+                            intent.putExtra("PRODUCT_NAME", product.getName());
+                            intent.putExtra("PRODUCT_PRICE", product.getPrice());
+                            intent.putExtra("PRODUCT_DESCRIPTION", product.getDescription());
+                            intent.putExtra("PRODUCT_CONDITION", product.getCondition());
+                            intent.putExtra("PRODUCT_WEIGHT", product.getWeightGrams());
+                            intent.putExtra("PRODUCT_IMAGE", product.getProductimage());
+                            intent.putExtra("PRODUCT_SOLD", product.getSoldCount());
+                            intent.putExtra("PRODUCT_RATING", product.getRatingAverage());
+                            if (store != null) {
+                                intent.putExtra("STORE_NAME", store.getStoreName());
+                                intent.putExtra("PRODUCT_LOCATION", store.getLocation());
+                            }
+                            startActivity(intent);
+                        },
+                        product -> {
+                            Intent intent = new Intent(requireContext(), EditProductActivity.class);
+                            intent.putExtra("PRODUCT_ID", product.getProductId());
+                            intent.putExtra("PRODUCT_NAME", product.getName());
+                            intent.putExtra("PRODUCT_PRICE", product.getPrice());
+                            intent.putExtra("PRODUCT_DESC", product.getDescription());
+                            startActivity(intent);
+                        },
+                        product -> {
+                            dbManager.productDB.deleteProduct(product.getProductId()).addOnSuccessListener(aVoid -> {
+                                if (!isAdded() || getContext() == null) return;
+                                Toast.makeText(requireContext(), "Product removed", Toast.LENGTH_SHORT).show();
+                                loadSellerProducts();
+                            }).addOnFailureListener(e -> {
+                                if (isAdded() && getContext() != null) {
+                                    Toast.makeText(requireContext(), "Delete failed", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                );
+                rvSellerProducts.setAdapter(adapter);
+            });
+        });
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (dbManager != null) {
-            dbManager.close();
-        }
+        if (dbManager != null) dbManager.close();
     }
 }

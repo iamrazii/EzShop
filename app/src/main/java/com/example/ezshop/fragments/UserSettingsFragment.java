@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -20,6 +21,7 @@ import com.example.ezshop.models.Order;
 import com.example.ezshop.models.User;
 import com.example.ezshop.utilities.SessionManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.firestore.DocumentSnapshot;
 import java.util.ArrayList;
 
 public class UserSettingsFragment extends Fragment {
@@ -54,14 +56,68 @@ public class UserSettingsFragment extends Fragment {
         return view;
     }
 
+    private void loadUserData() {
+        String userId = sessionManager.getUserId();
+        if (userId == null) return;
+
+        // NEW WAY: Asynchronous Firebase Call
+        dbManager.userDB.getUserById(userId)
+                .addOnSuccessListener(documentSnapshot -> {
+                    // CRASH SHIELD: Abort if the user navigated away before data loaded
+                    if (!isAdded() || getContext() == null) return;
+
+                    if (documentSnapshot.exists()) {
+                        User user = documentSnapshot.toObject(User.class);
+                        if (user != null) {
+                            tvName.setText(user.getName());
+                            tvEmail.setText(user.getEmail());
+
+                            String address = user.getDefaultShippingAddress();
+                            if (address == null || address.isEmpty()) {
+                                tvAddress.setText("No address provided");
+                            } else {
+                                tvAddress.setText(address);
+                            }
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(requireContext(), "Failed to load profile", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
     private void loadMyOrders() {
         String userId = sessionManager.getUserId();
-        if (userId != null) {
-            ArrayList<Order> orders = dbManager.orderDB.getOrdersForUser(userId);
-            MyOrdersAdapter adapter = new MyOrdersAdapter(requireContext(), orders, dbManager, userId);
-            rvMyOrders.setLayoutManager(new LinearLayoutManager(requireContext()));
-            rvMyOrders.setAdapter(adapter);
-        }
+        if (userId == null) return;
+
+        // NEW WAY: Asynchronous Firebase Call
+        dbManager.orderDB.getOrdersForUser(userId)
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    // CRASH SHIELD: Abort if the user navigated away before data loaded
+                    if (!isAdded() || getContext() == null) return;
+
+                    ArrayList<Order> orders = new ArrayList<>();
+
+                    // Loop through the Firebase snapshot and convert to Order objects
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        Order order = doc.toObject(Order.class);
+                        if (order != null) {
+                            orders.add(order);
+                        }
+                    }
+
+                    // Only set up the adapter once all data is parsed
+                    MyOrdersAdapter adapter = new MyOrdersAdapter(requireContext(), orders, dbManager, userId);
+                    rvMyOrders.setLayoutManager(new LinearLayoutManager(requireContext()));
+                    rvMyOrders.setAdapter(adapter);
+                })
+                .addOnFailureListener(e -> {
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(requireContext(), "Failed to load orders", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void showLogoutDialog() {
@@ -71,28 +127,12 @@ public class UserSettingsFragment extends Fragment {
                 .setPositiveButton("Logout", (dialog, which) -> {
                     sessionManager.logoutUser();
                     Intent i = new Intent(requireActivity(), WelcomeActivity.class);
-                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(i);
-                    requireActivity().finishAffinity();
+                    requireActivity().finish();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
-    }
-
-    private void loadUserData() {
-        String userId = sessionManager.getUserId();
-        User user = dbManager.userDB.getUserById(userId);
-        if (user != null) {
-            tvName.setText(user.getName());
-            tvEmail.setText(user.getEmail());
-
-            String address = user.getDefaultShippingAddress();
-            if (address == null || address.isEmpty()) {
-                tvAddress.setText("No address provided");
-            } else {
-                tvAddress.setText(address);
-            }
-        }
     }
 
     @Override

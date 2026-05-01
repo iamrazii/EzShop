@@ -2,9 +2,7 @@ package com.example.ezshop.fragments;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,7 +28,7 @@ import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Category;
 import com.example.ezshop.models.Product;
 import com.example.ezshop.utilities.SessionManager;
-import java.io.ByteArrayOutputStream;
+import com.google.firebase.firestore.DocumentSnapshot;
 import java.util.ArrayList;
 
 public class SellerAddProductFragment extends Fragment {
@@ -91,8 +89,6 @@ public class SellerAddProductFragment extends Fragment {
         dbManager = new DBManager(requireContext());
         dbManager.open();
 
-        dbManager.categoryDB.seedCategories();
-
         etProductName = view.findViewById(R.id.etProductName);
         etPrice = view.findViewById(R.id.etPrice);
         etDescription = view.findViewById(R.id.etDescription);
@@ -111,20 +107,23 @@ public class SellerAddProductFragment extends Fragment {
     }
 
     private void setupSpinners() {
-        categories = dbManager.categoryDB.getAllCategories();
-        ArrayList<String> categoryNames = new ArrayList<>();
+        dbManager.categoryDB.getAllCategories().addOnSuccessListener(snap -> {
+            if (!isAdded() || getContext() == null) return;
+            categories = new ArrayList<>();
+            ArrayList<String> categoryNames = new ArrayList<>();
 
-        if (categories != null && !categories.isEmpty()) {
-            for (Category c : categories) {
+            for (DocumentSnapshot doc : snap) {
+                Category c = doc.toObject(Category.class);
+                categories.add(c);
                 categoryNames.add(c.getName());
             }
-        } else {
-            categoryNames.add("Default");
-        }
 
-        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categoryNames);
-        catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerCategory.setAdapter(catAdapter);
+            if (categoryNames.isEmpty()) categoryNames.add("Default");
+
+            ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categoryNames);
+            catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerCategory.setAdapter(catAdapter);
+        });
 
         String[] conditions = {"New", "Used - Like New", "Used - Good", "Used - Acceptable"};
         ArrayAdapter<String> condAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, conditions);
@@ -136,9 +135,7 @@ public class SellerAddProductFragment extends Fragment {
         String[] options = {"Take Photo", "Choose from Gallery"};
         new AlertDialog.Builder(requireContext())
                 .setTitle("Add Product Image")
-                .setItems(options, (dialog, which) -> {
-                    checkPermissionsAndLaunch(which);
-                })
+                .setItems(options, (dialog, which) -> checkPermissionsAndLaunch(which))
                 .show();
     }
 
@@ -158,9 +155,8 @@ public class SellerAddProductFragment extends Fragment {
             }
         }
 
-        if (!allGranted) {
-            requestPermissionsLauncher.launch(permissions);
-        } else {
+        if (!allGranted) requestPermissionsLauncher.launch(permissions);
+        else {
             if (choice == 0) {
                 selectedImageUri = createTempImageUri();
                 cameraLauncher.launch(selectedImageUri);
@@ -215,14 +211,13 @@ public class SellerAddProductFragment extends Fragment {
         product.setSoldCount(0);
         product.setProductimage(selectedImageUri != null ? selectedImageUri.toString() : "macbook");
 
-        if (dbManager.productDB.addProduct(product) != null) {
+        dbManager.productDB.addProduct(product).addOnSuccessListener(aVoid -> {
+            if (!isAdded() || getContext() == null) return;
             Toast.makeText(requireContext(), "Product added!", Toast.LENGTH_SHORT).show();
             clearFields();
             ViewPager2 viewPager = requireActivity().findViewById(R.id.viewPager);
             if (viewPager != null) viewPager.setCurrentItem(1);
-        } else {
-            Toast.makeText(requireContext(), "Save failed", Toast.LENGTH_SHORT).show();
-        }
+        }).addOnFailureListener(e -> Toast.makeText(requireContext(), "Save failed", Toast.LENGTH_SHORT).show());
     }
 
     private void clearFields() {
@@ -233,11 +228,5 @@ public class SellerAddProductFragment extends Fragment {
         ivProductImage.setVisibility(View.GONE);
         llImagePlaceholder.setVisibility(View.VISIBLE);
         selectedImageUri = null;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (dbManager != null) dbManager.close();
     }
 }

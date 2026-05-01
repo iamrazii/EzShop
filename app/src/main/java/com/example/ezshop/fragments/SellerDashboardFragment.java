@@ -20,7 +20,6 @@ import com.example.ezshop.models.Store;
 import com.example.ezshop.models.User;
 import com.example.ezshop.utilities.SessionManager;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -28,7 +27,6 @@ public class SellerDashboardFragment extends Fragment {
 
     private DBManager dbManager;
     private SessionManager sessionManager;
-    private FirebaseFirestore cloudDb;
     private TextView tvWelcomeName, tvStoreName, tvTotalProducts, tvTotalSold, tvStoreRating;
     private RecyclerView rvTopSellers;
 
@@ -49,9 +47,6 @@ public class SellerDashboardFragment extends Fragment {
         });
 
         sessionManager = new SessionManager(requireContext());
-        cloudDb = FirebaseFirestore.getInstance();
-
-        // Keep local DB open for offline fallback if needed
         dbManager = new DBManager(requireContext());
         dbManager.open();
 
@@ -71,58 +66,49 @@ public class SellerDashboardFragment extends Fragment {
 
         if (storeId == null || userId == null) return;
 
-        // 1. Fetch User Data from Firebase
-        cloudDb.collection("users").document(userId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String name = documentSnapshot.getString("name");
-                        tvWelcomeName.setText("Welcome, " + (name != null ? name : "Seller") + " 👋");
-                    }
-                });
+        dbManager.userDB.getUserById(userId).addOnSuccessListener(documentSnapshot -> {
+            if (!isAdded() || getContext() == null) return;
+            if (documentSnapshot.exists()) {
+                User user = documentSnapshot.toObject(User.class);
+                tvWelcomeName.setText("Welcome, " + (user != null ? user.getName() : "Seller") + " 👋");
+            }
+        });
 
-        // 2. Fetch Store Data from Firebase
-        cloudDb.collection("stores").document(storeId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        tvStoreName.setText(documentSnapshot.getString("storeName"));
-                        Double rating = documentSnapshot.getDouble("rating");
-                        tvStoreRating.setText(String.format("%.1f", rating != null ? rating : 0.0));
-                    }
-                });
+        dbManager.storeDB.getStoreById(storeId).addOnSuccessListener(documentSnapshot -> {
+            if (!isAdded() || getContext() == null) return;
+            if (documentSnapshot.exists()) {
+                Store store = documentSnapshot.toObject(Store.class);
+                if (store != null) {
+                    tvStoreName.setText(store.getStoreName());
+                    tvStoreRating.setText(String.format("%.1f", store.getRating()));
+                }
+            }
+        });
 
-        // 3. Fetch Products for this store to calculate stats
-        cloudDb.collection("products")
-                .whereEqualTo("storeId", storeId)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    ArrayList<Product> products = new ArrayList<>();
-                    int totalSold = 0;
+        dbManager.productDB.getProductsForSeller(storeId).addOnSuccessListener(queryDocumentSnapshots -> {
+            if (!isAdded() || getContext() == null) return;
+            ArrayList<Product> products = new ArrayList<>();
+            int totalSold = 0;
 
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        Product p = doc.toObject(Product.class);
-                        if (p != null) {
-                            // Ensure the ID from the document is set in the object
-                            p.setProductId(doc.getId());
-                            totalSold += p.getSoldCount();
-                            products.add(p);
-                        }
-                    }
+            for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                Product p = doc.toObject(Product.class);
+                if (p != null) {
+                    totalSold += p.getSoldCount();
+                    products.add(p);
+                }
+            }
 
-                    tvTotalProducts.setText(String.valueOf(products.size()));
-                    tvTotalSold.setText(String.valueOf(totalSold));
-
-                    // 4. Update the Top Sellers List
-                    setupTopSellers(products);
-                });
+            tvTotalProducts.setText(String.valueOf(products.size()));
+            tvTotalSold.setText(String.valueOf(totalSold));
+            setupTopSellers(products);
+        });
     }
 
     private void setupTopSellers(ArrayList<Product> products) {
-        if (products.isEmpty()) return;
+        if (products.isEmpty() || getContext() == null) return;
 
-        // Sort by sold count descending
         Collections.sort(products, (p1, p2) -> Integer.compare(p2.getSoldCount(), p1.getSoldCount()));
 
-        // Take top 5
         ArrayList<Product> top5 = new ArrayList<>();
         for (int i = 0; i < Math.min(5, products.size()); i++) {
             top5.add(products.get(i));

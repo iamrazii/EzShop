@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -27,12 +26,8 @@ public class SellerSettingsFragment extends Fragment {
     private SessionManager sessionManager;
     private Store currentStore;
 
-    // View Mode elements
-    private LinearLayout llViewMode;
+    private LinearLayout llViewMode, llEditMode;
     private TextView tvStoreNameDetail, tvLocationDetail, tvStatusDetail;
-
-    // Edit Mode elements
-    private LinearLayout llEditMode;
     private EditText etEditStoreName, etEditLocation;
     private Spinner spinnerEditStatus;
     private String[] statuses = {"Active", "On Vacation", "Closed"};
@@ -46,26 +41,22 @@ public class SellerSettingsFragment extends Fragment {
         dbManager = new DBManager(requireContext());
         dbManager.open();
 
-        // Bind View Mode UI
         llViewMode = view.findViewById(R.id.llViewMode);
         tvStoreNameDetail = view.findViewById(R.id.tvStoreNameDetail);
         tvLocationDetail = view.findViewById(R.id.tvLocationDetail);
         tvStatusDetail = view.findViewById(R.id.tvStatusDetail);
 
-        // Bind Edit Mode UI
         llEditMode = view.findViewById(R.id.llEditMode);
         etEditStoreName = view.findViewById(R.id.etEditStoreName);
         etEditLocation = view.findViewById(R.id.etEditLocation);
         spinnerEditStatus = view.findViewById(R.id.spinnerEditStatus);
 
-        // Setup the dropdown spinner
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, statuses);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerEditStatus.setAdapter(adapter);
 
         loadStoreData();
 
-        // Click Listeners
         view.findViewById(R.id.btnEditStore).setOnClickListener(v -> toggleEditMode(true));
         view.findViewById(R.id.btnCancelEdit).setOnClickListener(v -> toggleEditMode(false));
         view.findViewById(R.id.btnSaveEdit).setOnClickListener(v -> saveStoreDetails());
@@ -73,35 +64,38 @@ public class SellerSettingsFragment extends Fragment {
         view.findViewById(R.id.btnLogout).setOnClickListener(v -> {
             sessionManager.logoutUser();
             Intent intent = new Intent(requireContext(), WelcomeActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-            requireActivity().finishAffinity();
+            requireActivity().finish();
         });
-
         return view;
     }
 
     private void loadStoreData() {
         String storeId = sessionManager.getStoreId();
-        currentStore = dbManager.storeDB.getStoreById(storeId);
+        if (storeId == null) return;
 
-        if (currentStore != null) {
-            // Fill static text
-            tvStoreNameDetail.setText(currentStore.getStoreName());
-            tvLocationDetail.setText(currentStore.getLocation());
-            tvStatusDetail.setText(currentStore.getStatus());
+        dbManager.storeDB.getStoreById(storeId).addOnSuccessListener(doc -> {
+            if (!isAdded() || getContext() == null) return;
+            if (doc.exists()) {
+                currentStore = doc.toObject(Store.class);
+                if (currentStore != null) {
+                    tvStoreNameDetail.setText(currentStore.getStoreName());
+                    tvLocationDetail.setText(currentStore.getLocation());
+                    tvStatusDetail.setText(currentStore.getStatus());
 
-            // Pre-fill edit text boxes
-            etEditStoreName.setText(currentStore.getStoreName());
-            etEditLocation.setText(currentStore.getLocation());
+                    etEditStoreName.setText(currentStore.getStoreName());
+                    etEditLocation.setText(currentStore.getLocation());
 
-            for (int i = 0; i < statuses.length; i++) {
-                if (statuses[i].equalsIgnoreCase(currentStore.getStatus())) {
-                    spinnerEditStatus.setSelection(i);
-                    break;
+                    for (int i = 0; i < statuses.length; i++) {
+                        if (statuses[i].equalsIgnoreCase(currentStore.getStatus())) {
+                            spinnerEditStatus.setSelection(i);
+                            break;
+                        }
+                    }
                 }
             }
-        }
+        });
     }
 
     private void toggleEditMode(boolean showEdit) {
@@ -111,7 +105,7 @@ public class SellerSettingsFragment extends Fragment {
         } else {
             llEditMode.setVisibility(View.GONE);
             llViewMode.setVisibility(View.VISIBLE);
-            loadStoreData(); // Refresh to undo any unsaved typing
+            loadStoreData();
         }
     }
 
@@ -131,14 +125,15 @@ public class SellerSettingsFragment extends Fragment {
         currentStore.setLocation(newLocation);
         currentStore.setStatus(newStatus);
 
-        boolean isUpdated = dbManager.storeDB.updateStore(currentStore);
-
-        if (isUpdated) {
+        dbManager.storeDB.updateStore(currentStore).addOnSuccessListener(aVoid -> {
+            if (!isAdded() || getContext() == null) return;
             Toast.makeText(requireContext(), "Store updated!", Toast.LENGTH_SHORT).show();
-            loadStoreData(); // Update screen with new data
-            toggleEditMode(false); // Switch back to View mode
-        } else {
-            Toast.makeText(requireContext(), "Failed to update", Toast.LENGTH_SHORT).show();
-        }
+            loadStoreData();
+            toggleEditMode(false);
+        }).addOnFailureListener(e -> {
+            if (isAdded() && getContext() != null) {
+                Toast.makeText(requireContext(), "Failed to update", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
