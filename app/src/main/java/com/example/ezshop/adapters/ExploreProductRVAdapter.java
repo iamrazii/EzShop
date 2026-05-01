@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.ezshop.R;
 import com.example.ezshop.models.Product;
 import java.util.ArrayList;
@@ -50,17 +51,13 @@ public class ExploreProductRVAdapter extends RecyclerView.Adapter<ExploreProduct
         holder.tvRating.setText(String.valueOf(currentProduct.getRatingAverage()));
         holder.tvSold.setText("Sold " + currentProduct.getSoldCount() + "+");
 
+        String imageUrl = currentProduct.getProductimage();
 
-        String iconName = currentProduct.getProductimage();
+        Glide.with(context)
+                .load(imageUrl)
+                .centerCrop()
+                .into(holder.ivProduct);
 
-        int drawbableid = context.getResources().getIdentifier(
-                iconName,
-                "drawable",
-                context.getPackageName()
-        );
-
-        holder.ivProduct.setImageResource(drawbableid);
-        // 3. TRIGGER THE CLICK ACTION
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onProductClick(currentProduct);

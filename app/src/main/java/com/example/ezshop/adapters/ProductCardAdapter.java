@@ -14,59 +14,71 @@ import java.util.ArrayList;
 public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.ViewHolder> {
 
     public interface OnProductClickListener {
-        void onClick(Product product);
+        void onProductClick(Product product);
     }
 
-    private final ArrayList<Product> products;
-    private final OnProductClickListener listener;
+    private ArrayList<Product> productList;
+    private OnProductClickListener listener;
+    private int displayLimit = 0; // 0 means show all
 
-    public ProductCardAdapter(ArrayList<Product> products, OnProductClickListener listener) {
-        this.products = products;
+    // Constructor 1: Show all items
+    public ProductCardAdapter(ArrayList<Product> productList, OnProductClickListener listener) {
+        this.productList = productList;
         this.listener = listener;
+        this.displayLimit = 0;
+    }
+
+    // Constructor 2: Show limited items
+    public ProductCardAdapter(ArrayList<Product> productList, int displayLimit, OnProductClickListener listener) {
+        this.productList = productList;
+        this.listener = listener;
+        this.displayLimit = displayLimit;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.item_product_card, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_product_card, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Product product = products.get(position);
-        android.content.Context ctx = holder.itemView.getContext();
-
+        Product product = productList.get(position);
         holder.tvName.setText(product.getName());
         holder.tvPrice.setText(String.format("$%.2f", product.getPrice()));
-        holder.tvRating.setText(String.format("⭐ %.1f", product.getRatingAverage()));
-        holder.tvSold.setText(String.format(" | Sold %d+", product.getSoldCount()));
 
-        if (product.getProductimage() != null && holder.ivImage != null) {
-            int imgId = ctx.getResources().getIdentifier(
-                product.getProductimage(), "drawable", ctx.getPackageName());
-            if (imgId != 0) holder.ivImage.setImageResource(imgId);
+        String imageName = product.getProductimage();
+        if (imageName != null) {
+            if (imageName.startsWith("content://") || imageName.startsWith("file://") || imageName.startsWith("http")) {
+                holder.ivImage.setImageURI(android.net.Uri.parse(imageName));
+            } else {
+                int imgId = holder.itemView.getContext().getResources().getIdentifier(imageName, "drawable", holder.itemView.getContext().getPackageName());
+                if (imgId != 0) holder.ivImage.setImageResource(imgId);
+            }
         }
 
-        holder.itemView.setOnClickListener(v -> listener.onClick(product));
+        holder.itemView.setOnClickListener(v -> listener.onProductClick(product));
     }
 
+    // THE MAGIC: Restrict the item count if a limit is set!
     @Override
-    public int getItemCount() { return products.size(); }
+    public int getItemCount() {
+        if (displayLimit > 0) {
+            return Math.min(productList.size(), displayLimit);
+        }
+        return productList.size();
+    }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivImage;
-        TextView tvName, tvPrice, tvRating, tvSold, tvLocation;
+        TextView tvName, tvPrice;
 
         ViewHolder(View itemView) {
             super(itemView);
             ivImage = itemView.findViewById(R.id.ivProductImage);
             tvName = itemView.findViewById(R.id.tvProductName);
             tvPrice = itemView.findViewById(R.id.tvProductPrice);
-            tvRating = itemView.findViewById(R.id.tvRating);
-            tvSold = itemView.findViewById(R.id.tvSold);
-            tvLocation = itemView.findViewById(R.id.tvLocation);
         }
     }
 }

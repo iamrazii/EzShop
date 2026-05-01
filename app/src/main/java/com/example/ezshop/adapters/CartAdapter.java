@@ -12,6 +12,8 @@ import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.CartItem;
 import com.example.ezshop.models.Product;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import java.util.ArrayList;
 
 public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
@@ -32,7 +34,15 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
         this.dbManager = dbManager;
         this.userId = userId;
         this.listener = listener;
-        this.allProducts = dbManager.productDB.getAllProducts();
+        this.allProducts = new ArrayList<>();
+
+        // ASYNC FETCH: Get all products, then tell the adapter to draw the UI
+        dbManager.productDB.getAllProducts().addOnSuccessListener(snap -> {
+            for (DocumentSnapshot doc : snap) {
+                allProducts.add(doc.toObject(Product.class));
+            }
+            notifyDataSetChanged();
+        });
     }
 
     @NonNull
@@ -45,20 +55,25 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CartItem item = cartItems.get(position);
+
+        // Wait until allProducts is populated by Firebase
+        if (allProducts.isEmpty()) return;
+
         Product product = null;
         for (Product p : allProducts) {
-            // FIXED: Used .equals() instead of == for String comparison
-            if (p.getProductId().equals(item.getProductId())) { product = p; break; }
+            if (p.getProductId() != null && p.getProductId().equals(item.getProductId())) {
+                product = p;
+                break;
+            }
         }
 
         if (product != null) {
             holder.tvName.setText(product.getName());
             holder.tvPrice.setText(String.format("$%.2f", product.getPrice()));
 
-            // FIXED: Handle both local camera photos and default drawables
             String imageName = product.getProductimage();
             if (imageName != null) {
-                if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
+                if (imageName.startsWith("content://") || imageName.startsWith("file://") || imageName.startsWith("http")) {
                     holder.ivProductImage.setImageURI(android.net.Uri.parse(imageName));
                 } else {
                     int imgId = context.getResources().getIdentifier(imageName, "drawable", context.getPackageName());
@@ -69,21 +84,25 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
 
         holder.tvQty.setText(String.valueOf(item.getQuantity()));
 
+        // ASYNC UPDATES: Only trigger the listener refresh once Firebase confirms the update!
         holder.tvPlus.setOnClickListener(v -> {
-            dbManager.cartItemDB.updateQuantity(item.getCartItemId(), item.getQuantity() + 1);
-            listener.onChanged();
+            dbManager.cartItemDB.updateQuantity(item.getCartItemId(), item.getQuantity() + 1)
+                    .addOnSuccessListener(aVoid -> listener.onChanged());
         });
+
         holder.tvMinus.setOnClickListener(v -> {
             if (item.getQuantity() > 1) {
-                dbManager.cartItemDB.updateQuantity(item.getCartItemId(), item.getQuantity() - 1);
+                dbManager.cartItemDB.updateQuantity(item.getCartItemId(), item.getQuantity() - 1)
+                        .addOnSuccessListener(aVoid -> listener.onChanged());
             } else {
-                dbManager.cartItemDB.deleteCartItem(item.getCartItemId());
+                dbManager.cartItemDB.deleteCartItem(item.getCartItemId())
+                        .addOnSuccessListener(aVoid -> listener.onChanged());
             }
-            listener.onChanged();
         });
+
         holder.ivDelete.setOnClickListener(v -> {
-            dbManager.cartItemDB.deleteCartItem(item.getCartItemId());
-            listener.onChanged();
+            dbManager.cartItemDB.deleteCartItem(item.getCartItemId())
+                    .addOnSuccessListener(aVoid -> listener.onChanged());
         });
     }
 
@@ -92,7 +111,6 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivProductImage, ivDelete;
-        // FIXED: Changed tvPlus and tvMinus to TextView to match item_cart.xml
         TextView tvName, tvProductVariant, tvPrice, tvQty, tvPlus, tvMinus;
 
         ViewHolder(View itemView) {

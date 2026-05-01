@@ -12,6 +12,8 @@ import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.CartItem;
 import com.example.ezshop.models.Product;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import java.util.ArrayList;
 
 public class CheckoutItemAdapter extends RecyclerView.Adapter<CheckoutItemAdapter.ViewHolder> {
@@ -23,7 +25,15 @@ public class CheckoutItemAdapter extends RecyclerView.Adapter<CheckoutItemAdapte
     public CheckoutItemAdapter(Context context, ArrayList<CartItem> cartItems, DBManager dbManager) {
         this.context = context;
         this.cartItems = cartItems;
-        this.allProducts = dbManager.productDB.getAllProducts();
+        this.allProducts = new ArrayList<>();
+
+        // ASYNC FETCH: Populate all products for price matching
+        dbManager.productDB.getAllProducts().addOnSuccessListener(snap -> {
+            for (DocumentSnapshot doc : snap) {
+                allProducts.add(doc.toObject(Product.class));
+            }
+            notifyDataSetChanged();
+        });
     }
 
     @NonNull
@@ -33,21 +43,20 @@ public class CheckoutItemAdapter extends RecyclerView.Adapter<CheckoutItemAdapte
         return new ViewHolder(view);
     }
 
-    // Replace your onBindViewHolder method inside CheckoutItemAdapter.java with this:
-
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CartItem item = cartItems.get(position);
+
+        if (allProducts.isEmpty()) return;
+
         for (Product p : allProducts) {
-            // FIXED BUG HERE:
-            if (p.getProductId().equals(item.getProductId())) {
+            if (p.getProductId() != null && p.getProductId().equals(item.getProductId())) {
                 holder.tvName.setText(p.getName());
                 holder.tvPrice.setText(String.format("$%.2f", p.getPrice()));
 
-                // FIXED IMAGES:
                 String imageName = p.getProductimage();
                 if (imageName != null) {
-                    if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
+                    if (imageName.startsWith("content://") || imageName.startsWith("file://") || imageName.startsWith("http")) {
                         holder.ivImage.setImageURI(android.net.Uri.parse(imageName));
                     } else {
                         int imgId = context.getResources().getIdentifier(imageName, "drawable", context.getPackageName());

@@ -24,6 +24,8 @@ import com.example.ezshop.models.Product;
 import com.example.ezshop.models.Review;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,7 +45,15 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
         this.orders = orders;
         this.dbManager = dbManager;
         this.userId = userId;
-        this.allProducts = dbManager.productDB.getAllProducts();
+        this.allProducts = new ArrayList<>();
+
+        // ASYNC FETCH: Grab products to match names and images
+        dbManager.productDB.getAllProducts().addOnSuccessListener(snap -> {
+            for (DocumentSnapshot doc : snap) {
+                allProducts.add(doc.toObject(Product.class));
+            }
+            notifyDataSetChanged();
+        });
     }
 
     @NonNull
@@ -61,7 +71,6 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
         holder.tvOrderDate.setText("Ordered on: " + sdf.format(new Date(order.getCreatedAt())));
         holder.tvOrderTotal.setText(String.format("$%.2f", order.getTotalPrice()));
 
-        // --- Status Logic based on Days since creation ---
         long now = System.currentTimeMillis();
         long diffMillis = now - order.getCreatedAt();
         long days = TimeUnit.MILLISECONDS.toDays(diffMillis);
@@ -73,48 +82,55 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
         else status = "Delivered";
 
         holder.tvOrderStatus.setText(status);
+        holder.llOrderItems.removeAllViews();
 
-        holder.llOrderItems.removeAllViews(); // Clear layout to prevent duplicates on recycle
-        ArrayList<OrderItem> items = dbManager.orderDB.getOrderItems(order.getOrderId());
-        LayoutInflater inflater = LayoutInflater.from(context);
+        if (allProducts.isEmpty()) return; // Wait for products to load
 
-        for (OrderItem item : items) {
-            View productView = inflater.inflate(R.layout.item_my_order_product, holder.llOrderItems, false);
+        // ASYNC FETCH: Load the individual items inside this specific order
+        dbManager.orderDB.getOrderItems(order.getOrderId()).addOnSuccessListener(snap -> {
+            LayoutInflater inflater = LayoutInflater.from(context);
 
-            ImageView ivImage = productView.findViewById(R.id.ivProductImage);
-            TextView tvName = productView.findViewById(R.id.tvProductName);
-            TextView tvPrice = productView.findViewById(R.id.tvProductPrice);
-            TextView tvQty = productView.findViewById(R.id.tvProductQty);
-            MaterialButton btnReview = productView.findViewById(R.id.btnAddReview);
+            for (DocumentSnapshot doc : snap) {
+                OrderItem item = doc.toObject(OrderItem.class);
+                if (item == null) continue;
 
-            Product matchedProduct = null;
-            for (Product p : allProducts) {
-                if (p.getProductId().equals(item.getProductId())) {
-                    matchedProduct = p;
-                    break;
-                }
-            }
+                View productView = inflater.inflate(R.layout.item_my_order_product, holder.llOrderItems, false);
 
-            if (matchedProduct != null) {
-                tvName.setText(matchedProduct.getName());
-                tvPrice.setText(String.format("$%.2f", item.getPriceAtPurchase()));
-                tvQty.setText("x" + item.getQuantity());
+                ImageView ivImage = productView.findViewById(R.id.ivProductImage);
+                TextView tvName = productView.findViewById(R.id.tvProductName);
+                TextView tvPrice = productView.findViewById(R.id.tvProductPrice);
+                TextView tvQty = productView.findViewById(R.id.tvProductQty);
+                MaterialButton btnReview = productView.findViewById(R.id.btnAddReview);
 
-                String img = matchedProduct.getProductimage();
-                if (img != null) {
-                    if (img.startsWith("content://") || img.startsWith("file://")) {
-                        ivImage.setImageURI(Uri.parse(img));
-                    } else {
-                        int resId = context.getResources().getIdentifier(img, "drawable", context.getPackageName());
-                        if (resId != 0) ivImage.setImageResource(resId);
+                Product matchedProduct = null;
+                for (Product p : allProducts) {
+                    if (p.getProductId() != null && p.getProductId().equals(item.getProductId())) {
+                        matchedProduct = p;
+                        break;
                     }
                 }
 
-                Product finalMatchedProduct = matchedProduct;
-                btnReview.setOnClickListener(v -> showReviewDialog(finalMatchedProduct));
+                if (matchedProduct != null) {
+                    tvName.setText(matchedProduct.getName());
+                    tvPrice.setText(String.format("$%.2f", item.getPriceAtPurchase()));
+                    tvQty.setText("x" + item.getQuantity());
+
+                    String img = matchedProduct.getProductimage();
+                    if (img != null) {
+                        if (img.startsWith("content://") || img.startsWith("file://") || img.startsWith("http")) {
+                            ivImage.setImageURI(Uri.parse(img));
+                        } else {
+                            int resId = context.getResources().getIdentifier(img, "drawable", context.getPackageName());
+                            if (resId != 0) ivImage.setImageResource(resId);
+                        }
+                    }
+
+                    Product finalMatchedProduct = matchedProduct;
+                    btnReview.setOnClickListener(v -> showReviewDialog(finalMatchedProduct));
+                }
+                holder.llOrderItems.addView(productView);
             }
-            holder.llOrderItems.addView(productView);
-        }
+        });
     }
 
     private void showReviewDialog(Product product) {
@@ -132,9 +148,9 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
         ratingBar.setStepSize(1.0f);
         ratingBar.setRating(5.0f);
 
-        ratingBar.setProgressTintList(ColorStateList.valueOf(Color.parseColor("#FFC107"))); // Vibrant Yellow
-        ratingBar.setProgressBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E0E0E0"))); // Soft Gray for empty stars
-        ratingBar.setSecondaryProgressTintList(ColorStateList.valueOf(Color.parseColor("#FFC107"))); // Ensure partial fills are yellow
+        ratingBar.setProgressTintList(ColorStateList.valueOf(Color.parseColor("#FFC107")));
+        ratingBar.setProgressBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E0E0E0")));
+        ratingBar.setSecondaryProgressTintList(ColorStateList.valueOf(Color.parseColor("#FFC107")));
 
         LinearLayout.LayoutParams rbParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         rbParams.setMargins(0, 0, 0, 30);
@@ -168,8 +184,10 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
             SimpleDateFormat sdf = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
             review.setReviewDate(sdf.format(new Date()));
 
-            dbManager.reviewDB.addReview(review);
-            Toast.makeText(context, "Review submitted! ⭐", Toast.LENGTH_SHORT).show();
+            // ASYNC ADDITION: Show success toast only after Firebase confirms!
+            dbManager.reviewDB.addReview(review).addOnSuccessListener(aVoid -> {
+                Toast.makeText(context, "Review submitted! ⭐", Toast.LENGTH_SHORT).show();
+            });
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         builder.show();
