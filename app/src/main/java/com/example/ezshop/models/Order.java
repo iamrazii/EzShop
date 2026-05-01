@@ -7,12 +7,14 @@ public class Order {
     @DocumentId
     private String orderId;
     private String userId;
-    private String promoId; // Using Integer instead of int so it can be 'null' if no promo is used
+    private String promoId;
     private String shippingAddress;
     private String paymentMethod;
     private double totalPrice;
     private String orderStatus;
     private long createdAt;
+
+    public Order() {}
 
     public Order(String orderId, long createdAt, String orderStatus, double totalPrice,
                  String paymentMethod, String shippingAddress, String promoId, String userId) {
@@ -26,69 +28,27 @@ public class Order {
         this.userId = userId;
     }
 
-    public Order() {}
+    public String getOrderId() { return orderId; }
+    public void setOrderId(String orderId) { this.orderId = orderId; }
 
-    public String getOrderId() {
-        return orderId;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
-    }
+    public String getPromoId() { return promoId; }
+    public void setPromoId(String promoId) { this.promoId = promoId; }
 
-    public long getCreatedAt() {
-        return createdAt;
-    }
+    public String getShippingAddress() { return shippingAddress; }
+    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
 
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 
-    public String getOrderStatus() {
-        return orderStatus;
-    }
+    public double getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
 
-    public void setOrderStatus(String orderStatus) {
-        this.orderStatus = orderStatus;
-    }
+    public String getOrderStatus() { return orderStatus; }
+    public void setOrderStatus(String orderStatus) { this.orderStatus = orderStatus; }
 
-    public double getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(double totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public String getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
-
-    public String getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getPromoId() {
-        return promoId;
-    }
-
-    public void setPromoId(String promoId) {
-        this.promoId = promoId;
-    }
+    public long getCreatedAt() { return createdAt; }
+    public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
 }

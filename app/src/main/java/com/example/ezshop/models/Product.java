@@ -9,8 +9,6 @@ public class Product {
     private String storeId;
     private String categoryId;
     private String name;
-
-
     private String description;
     private String productimage;
     private double price;
@@ -21,9 +19,8 @@ public class Product {
 
     public Product() {}
 
-
     public Product(String productId, int soldCount, int weightGrams, double ratingAverage, String condition, double price,
-                   String description,String image ,String name, String categoryId, String storeId) {
+                   String description, String productimage, String name, String categoryId, String storeId) {
         this.productId = productId;
         this.soldCount = soldCount;
         this.weightGrams = weightGrams;
@@ -34,96 +31,39 @@ public class Product {
         this.name = name;
         this.categoryId = categoryId;
         this.storeId = storeId;
-        this.productimage = image;
-    }
-
-
-
-    public String getProductimage() {
-        return productimage;
-    }
-
-    public void setProductimage(String productimage) {
         this.productimage = productimage;
     }
 
-    public String getProductId() {
-        return productId;
-    }
+    public String getProductId() { return productId; }
+    public void setProductId(String productId) { this.productId = productId; }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
-    }
+    public String getStoreId() { return storeId; }
+    public void setStoreId(String storeId) { this.storeId = storeId; }
 
-    public String getStoreId() {
-        return storeId;
-    }
+    public String getCategoryId() { return categoryId; }
+    public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
 
-    public void setStoreId(String storeId) {
-        this.storeId = storeId;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getCategoryId() {
-        return categoryId;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
-    }
+    public String getProductimage() { return productimage; }
+    public void setProductimage(String productimage) { this.productimage = productimage; }
 
-    public String getName() {
-        return name;
-    }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getCondition() { return condition; }
+    public void setCondition(String condition) { this.condition = condition; }
 
-    public String getDescription() {
-        return description;
-    }
+    public int getWeightGrams() { return weightGrams; }
+    public void setWeightGrams(int weightGrams) { this.weightGrams = weightGrams; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public double getRatingAverage() { return ratingAverage; }
+    public void setRatingAverage(double ratingAverage) { this.ratingAverage = ratingAverage; }
 
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
-
-    public int getWeightGrams() {
-        return weightGrams;
-    }
-
-    public void setWeightGrams(int weightGrams) {
-        this.weightGrams = weightGrams;
-    }
-
-    public double getRatingAverage() {
-        return ratingAverage;
-    }
-
-    public void setRatingAverage(double ratingAverage) {
-        this.ratingAverage = ratingAverage;
-    }
-
-    public int getSoldCount() {
-        return soldCount;
-    }
-
-    public void setSoldCount(int soldCount) {
-        this.soldCount = soldCount;
-    }
+    public int getSoldCount() { return soldCount; }
+    public void setSoldCount(int soldCount) { this.soldCount = soldCount; }
 }

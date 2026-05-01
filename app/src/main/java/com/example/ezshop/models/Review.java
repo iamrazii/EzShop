@@ -10,64 +10,34 @@ public class Review {
     private String userId;
     private int rating;
     private String comment;
-    private String reviewDate; // Kept as String to match "Feb 2022" format from Figma
+    private String reviewDate;
 
     public Review() {}
 
-    public Review(String reviewDate, String comment, int rating, String userId, String productId, String reviewId) {
-        this.reviewDate = reviewDate;
-        this.comment = comment;
-        this.rating = rating;
-        this.userId = userId;
+    public Review(String reviewId, String productId, String userId, int rating, String comment, String reviewDate) {
+        this.reviewId = reviewId;
         this.productId = productId;
-        this.reviewId = reviewId;
-    }
-
-    public String getReviewId() {
-        return reviewId;
-    }
-
-    public void setReviewId(String reviewId) {
-        this.reviewId = reviewId;
-    }
-
-    public String getReviewDate() {
-        return reviewDate;
-    }
-
-    public void setReviewDate(String reviewDate) {
+        this.userId = userId;
+        this.rating = rating;
+        this.comment = comment;
         this.reviewDate = reviewDate;
     }
 
-    public String getComment() {
-        return comment;
-    }
+    public String getReviewId() { return reviewId; }
+    public void setReviewId(String reviewId) { this.reviewId = reviewId; }
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+    public String getProductId() { return productId; }
+    public void setProductId(String productId) { this.productId = productId; }
 
-    public int getRating() {
-        return rating;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public void setRating(int rating) {
-        this.rating = rating;
-    }
+    public int getRating() { return rating; }
+    public void setRating(int rating) { this.rating = rating; }
 
-    public String getUserId() {
-        return userId;
-    }
+    public String getComment() { return comment; }
+    public void setComment(String comment) { this.comment = comment; }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getProductId() {
-        return productId;
-    }
-
-    public void setProductId(String productId) {
-        this.productId = productId;
-    }
+    public String getReviewDate() { return reviewDate; }
+    public void setReviewDate(String reviewDate) { this.reviewDate = reviewDate; }
 }

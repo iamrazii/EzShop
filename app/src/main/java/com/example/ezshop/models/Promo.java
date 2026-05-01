@@ -1,6 +1,5 @@
 package com.example.ezshop.models;
 
-
 import com.google.firebase.firestore.DocumentId;
 
 public class Promo {
@@ -18,27 +17,12 @@ public class Promo {
         this.discountPercentage = discountPercentage;
     }
 
-    public String getPromoId() {
-        return promoId;
-    }
+    public String getPromoId() { return promoId; }
+    public void setPromoId(String promoId) { this.promoId = promoId; }
 
-    public void setPromoId(String promoId) {
-        this.promoId = promoId;
-    }
+    public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
 
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public double getDiscountPercentage() {
-        return discountPercentage;
-    }
-
-    public void setDiscountPercentage(double discountPercentage) {
-        this.discountPercentage = discountPercentage;
-    }
+    public double getDiscountPercentage() { return discountPercentage; }
+    public void setDiscountPercentage(double discountPercentage) { this.discountPercentage = discountPercentage; }
 }

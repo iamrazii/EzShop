@@ -1,6 +1,5 @@
 package com.example.ezshop.models;
 
-
 import com.google.firebase.firestore.DocumentId;
 
 public class Category {
@@ -18,27 +17,12 @@ public class Category {
         this.iconName = iconName;
     }
 
-    public String getCategoryId() {
-        return categoryId;
-    }
+    public String getCategoryId() { return categoryId; }
+    public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
 
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getIconName() {
-        return iconName;
-    }
-
-    public void setIconName(String iconName) {
-        this.iconName = iconName;
-    }
+    public String getIconName() { return iconName; }
+    public void setIconName(String iconName) { this.iconName = iconName; }
 }

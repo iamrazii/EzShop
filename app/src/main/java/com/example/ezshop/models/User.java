@@ -12,7 +12,7 @@ public class User {
     private double walletBalance;
     private String defaultShippingAddress;
 
-    public User() {} // Empty constructor required for database parsing
+    public User() {}
 
     public User(String userId, String name, String email, String passwordHash, double walletBalance, String defaultShippingAddress) {
         this.userId = userId;
@@ -23,51 +23,21 @@ public class User {
         this.defaultShippingAddress = defaultShippingAddress;
     }
 
-    public String getUserId() {
-        return userId;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 
-    public String getEmail() {
-        return email;
-    }
+    public double getWalletBalance() { return walletBalance; }
+    public void setWalletBalance(double walletBalance) { this.walletBalance = walletBalance; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public double getWalletBalance() {
-        return walletBalance;
-    }
-
-    public void setWalletBalance(double walletBalance) {
-        this.walletBalance = walletBalance;
-    }
-
-    public String getDefaultShippingAddress() {
-        return defaultShippingAddress;
-    }
-
-    public void setDefaultShippingAddress(String defaultShippingAddress) {
-        this.defaultShippingAddress = defaultShippingAddress;
-    }
+    public String getDefaultShippingAddress() { return defaultShippingAddress; }
+    public void setDefaultShippingAddress(String defaultShippingAddress) { this.defaultShippingAddress = defaultShippingAddress; }
 }

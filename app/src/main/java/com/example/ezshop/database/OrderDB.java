@@ -1,139 +1,49 @@
 package com.example.ezshop.database;
-
-import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
-import java.util.ArrayList;
-import java.util.UUID;
 import com.example.ezshop.models.Order;
 import com.example.ezshop.models.OrderItem;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
+import java.util.ArrayList;
 
 public class OrderDB {
-    private SQLiteDatabase database;
     private FirebaseFirestore cloudDb;
 
-    private static final String TABLE_ORDERS = "orders";
-    private static final String COLUMN_ORDER_ID = "order_id";
-    private static final String COLUMN_USER_ID = "user_id";
-    private static final String COLUMN_PROMO_ID = "promo_id";
-    private static final String COLUMN_ADDRESS = "shipping_address";
-    private static final String COLUMN_PAYMENT = "payment_method";
-    private static final String COLUMN_TOTAL = "total_price";
-    private static final String COLUMN_STATUS = "order_status";
-    private static final String COLUMN_DATE = "created_at";
+    public OrderDB(FirebaseFirestore cloudDb) { this.cloudDb = cloudDb; }
 
-    private static final String TABLE_ORDER_ITEMS = "order_items";
-    private static final String COLUMN_ITEM_ID = "order_item_id";
-    private static final String COLUMN_ITEM_ORDER_ID = "order_id";
-    private static final String COLUMN_PRODUCT_ID = "product_id";
-    private static final String COLUMN_PRICE_PURCHASE = "price_at_purchase";
-    private static final String COLUMN_QTY = "quantity";
+    public Task<Void> placeOrder(Order order, ArrayList<OrderItem> orderItems) {
+        WriteBatch batch = cloudDb.batch();
 
-    public OrderDB(SQLiteDatabase database) {
-        this.database = database;
-        this.cloudDb = FirebaseFirestore.getInstance();
+        String orderId = cloudDb.collection("orders").document().getId();
+        order.setOrderId(orderId);
+        order.setOrderStatus("Processing");
+        order.setCreatedAt(System.currentTimeMillis());
+
+        // 1. Queue Order Save
+        batch.set(cloudDb.collection("orders").document(orderId), order);
+
+        // 2. Queue Item Saves
+        for (OrderItem item : orderItems) {
+            String itemId = cloudDb.collection("order_items").document().getId();
+            item.setOrderItemId(itemId);
+            item.setOrderId(orderId);
+            batch.set(cloudDb.collection("order_items").document(itemId), item);
+        }
+
+        // 3. Commit everything to Firebase at once!
+        return batch.commit();
     }
 
-    public boolean placeOrder(Order order, ArrayList<OrderItem> orderItems) {
-        database.beginTransaction();
-        try {
-            ContentValues orderValues = new ContentValues();
-            String newOrderId = UUID.randomUUID().toString();
-
-            // Attach generated data to the object for Firebase later
-            order.setOrderId(newOrderId);
-            order.setOrderStatus("Processing");
-            order.setCreatedAt(System.currentTimeMillis());
-
-            orderValues.put(COLUMN_ORDER_ID, newOrderId);
-            orderValues.put(COLUMN_USER_ID, order.getUserId());
-            if (order.getPromoId() != null) {
-                orderValues.put(COLUMN_PROMO_ID, order.getPromoId());
-            } else {
-                orderValues.putNull(COLUMN_PROMO_ID);
-            }
-            orderValues.put(COLUMN_ADDRESS, order.getShippingAddress());
-            orderValues.put(COLUMN_PAYMENT, order.getPaymentMethod());
-            orderValues.put(COLUMN_TOTAL, order.getTotalPrice());
-            orderValues.put(COLUMN_STATUS, order.getOrderStatus());
-            orderValues.put(COLUMN_DATE, order.getCreatedAt());
-
-            if (database.insert(TABLE_ORDERS, null, orderValues) == -1) { return false; }
-
-            for (OrderItem item : orderItems) {
-                String newItemId = UUID.randomUUID().toString();
-                item.setOrderItemId(newItemId);
-                item.setOrderId(newOrderId); // Link it to master order
-
-                ContentValues itemValues = new ContentValues();
-                itemValues.put(COLUMN_ITEM_ID, newItemId);
-                itemValues.put(COLUMN_ITEM_ORDER_ID, newOrderId);
-                itemValues.put(COLUMN_PRODUCT_ID, item.getProductId());
-                itemValues.put(COLUMN_PRICE_PURCHASE, item.getPriceAtPurchase());
-                itemValues.put(COLUMN_QTY, item.getQuantity());
-                database.insert(TABLE_ORDER_ITEMS, null, itemValues);
-            }
-
-            database.delete("cart_items", "user_id=?", new String[]{order.getUserId()});
-            database.setTransactionSuccessful();
-
-            // FIREBASE SYNC: Transaction was successful, push everything!
-            cloudDb.collection("orders").document(newOrderId).set(order);
-            for (OrderItem item : orderItems) {
-                cloudDb.collection("order_items").document(item.getOrderItemId()).set(item);
-            }
-
-            // Also clear the user's cart in Firebase
-            cloudDb.collection("cart_items").whereEqualTo("userId", order.getUserId()).get()
-                    .addOnSuccessListener(snap -> {
-                        for(com.google.firebase.firestore.DocumentSnapshot doc : snap.getDocuments()) {
-                            doc.getReference().delete();
-                        }
-                    });
-
-            return true;
-
-        } finally {
-            database.endTransaction();
-        }
+    public Task<QuerySnapshot> getOrdersForUser(String userId) {
+        return cloudDb.collection("orders")
+                .whereEqualTo("userId", userId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get();
     }
 
-    public ArrayList<Order> getOrdersForUser(String userId) {
-        ArrayList<Order> orders = new ArrayList<>();
-        android.database.Cursor cursor = database.query("orders", null, "user_id=?", new String[]{userId}, null, null, "created_at DESC");
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                Order order = new Order();
-                order.setOrderId(cursor.getString(cursor.getColumnIndexOrThrow("order_id")));
-                order.setUserId(cursor.getString(cursor.getColumnIndexOrThrow("user_id")));
-                order.setPromoId(cursor.getString(cursor.getColumnIndexOrThrow("promo_id")));
-                order.setShippingAddress(cursor.getString(cursor.getColumnIndexOrThrow("shipping_address")));
-                order.setPaymentMethod(cursor.getString(cursor.getColumnIndexOrThrow("payment_method")));
-                order.setTotalPrice(cursor.getDouble(cursor.getColumnIndexOrThrow("total_price")));
-                order.setOrderStatus(cursor.getString(cursor.getColumnIndexOrThrow("order_status")));
-                order.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow("created_at")));
-                orders.add(order);
-            }
-            cursor.close();
-        }
-        return orders;
-    }
-
-    public ArrayList<OrderItem> getOrderItems(String orderId) {
-        ArrayList<OrderItem> items = new ArrayList<>();
-        android.database.Cursor cursor = database.query("order_items", null, "order_id=?", new String[]{orderId}, null, null, null);
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                OrderItem item = new OrderItem();
-                item.setOrderItemId(cursor.getString(cursor.getColumnIndexOrThrow("order_item_id")));
-                item.setOrderId(cursor.getString(cursor.getColumnIndexOrThrow("order_id")));
-                item.setProductId(cursor.getString(cursor.getColumnIndexOrThrow("product_id")));
-                item.setPriceAtPurchase(cursor.getDouble(cursor.getColumnIndexOrThrow("price_at_purchase")));
-                item.setQuantity(cursor.getInt(cursor.getColumnIndexOrThrow("quantity")));
-                items.add(item);
-            }
-            cursor.close();
-        }
-        return items;
+    public Task<QuerySnapshot> getOrderItems(String orderId) {
+        return cloudDb.collection("order_items").whereEqualTo("orderId", orderId).get();
     }
 }
