@@ -9,11 +9,15 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Store;
 import com.example.ezshop.models.User;
+import com.example.ezshop.utilities.NetworkUtils;
 import com.example.ezshop.utilities.SessionManager;
+
+import java.util.UUID;
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -56,7 +60,9 @@ public class SignupActivity extends AppCompatActivity {
             finish();
         });
 
-        findViewById(R.id.btnSignUp).setOnClickListener(v -> attemptSignup());
+        findViewById(R.id.btnSignUp).setOnClickListener(v -> {
+            NetworkUtils.requireInternet(this, () -> attemptSignup());
+        });
     }
 
     private void attemptSignup() {
@@ -69,13 +75,16 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
+        // Generate a definitive ID for the new user
+        String userId = UUID.randomUUID().toString();
+
         User user = new User();
+        user.setUserId(userId);
         user.setName(name);
         user.setEmail(email);
         user.setPasswordHash(password);
         user.setWalletBalance(58.309); // Starting promo balance
 
-        // Check which mode we are in
         if (rbSeller.isChecked()) {
             String storeName = etStoreName.getText().toString().trim();
             String storeLocation = etStoreLocation.getText().toString().trim();
@@ -85,28 +94,30 @@ public class SignupActivity extends AppCompatActivity {
                 return;
             }
 
-            // Sellers don't need a default shipping address initially
             user.setDefaultShippingAddress("N/A");
 
-            String userId = dbManager.userDB.addUser(user);
-            if (userId == null) {
-                Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            // Save User to Firebase, THEN Save Store to Firebase
+            dbManager.userDB.addUser(user).addOnSuccessListener(this, aVoid -> {
 
-            Store store = new Store();
-            store.setStoreName(storeName);
-            store.setLocation(storeLocation.isEmpty() ? "Unknown" : storeLocation);
-            store.setStatus("Active");
-            store.setRating(0.0);
-            store.setOwner_id(userId);
+                String storeId = UUID.randomUUID().toString();
+                Store store = new Store();
+                store.setStoreId(storeId);
+                store.setStoreName(storeName);
+                store.setLocation(storeLocation.isEmpty() ? "Unknown" : storeLocation);
+                store.setStatus("Active");
+                store.setRating(0.0);
+                store.setOwner_id(userId);
 
-            String storeId = dbManager.storeDB.addStore(store);
-            sessionManager.createLoginSession( userId, "seller");
-            sessionManager.setStoreId(storeId);
+                dbManager.storeDB.addStore(store).addOnSuccessListener(this, aVoid2 -> {
+                    sessionManager.createLoginSession(userId, "seller");
+                    sessionManager.setStoreId(storeId);
 
-            Toast.makeText(this, "Store created! Welcome aboard.", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, SellerHomeActivity.class));
+                    Toast.makeText(this, "Store created! Welcome aboard.", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(this, SellerHomeActivity.class));
+                    finishAffinity();
+                }).addOnFailureListener(this, e -> Toast.makeText(this, "Failed to create store data.", Toast.LENGTH_SHORT).show());
+
+            }).addOnFailureListener(this, e -> Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show());
 
         } else {
             String address = etAddress.getText().toString().trim();
@@ -117,18 +128,13 @@ public class SignupActivity extends AppCompatActivity {
 
             user.setDefaultShippingAddress(address);
 
-            String userId = dbManager.userDB.addUser(user);
-            if (userId == null) {
-                Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            sessionManager.createLoginSession( userId, "user");
-            Toast.makeText(this, "Account created! Happy shopping.", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, UserHomeActivity.class));
+            dbManager.userDB.addUser(user).addOnSuccessListener(this, aVoid -> {
+                sessionManager.createLoginSession(userId, "user");
+                Toast.makeText(this, "Account created! Happy shopping.", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, UserHomeActivity.class));
+                finishAffinity();
+            }).addOnFailureListener(this, e -> Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show());
         }
-
-        finishAffinity();
     }
 
     @Override

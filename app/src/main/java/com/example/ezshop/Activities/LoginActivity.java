@@ -5,11 +5,13 @@ import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
-import com.example.ezshop.models.User;
+import com.example.ezshop.utilities.NetworkUtils;
 import com.example.ezshop.utilities.SessionManager;
-import java.util.ArrayList;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -32,10 +34,17 @@ public class LoginActivity extends AppCompatActivity {
         findViewById(R.id.tvSignUp).setOnClickListener(v ->
                 startActivity(new Intent(this, SignupActivity.class))
         );
-        findViewById(R.id.btnLogin).setOnClickListener(v -> attemptLogin());
+
+        findViewById(R.id.btnLogin).setOnClickListener(v -> {
+            if (NetworkUtils.isNetworkAvailable(this)) {
+                attemptCloudLogin();
+            } else {
+                Toast.makeText(this, "Internet required to log in.", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
-    private void attemptLogin() {
+    private void attemptCloudLogin() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
@@ -44,30 +53,43 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        ArrayList<User> users = dbManager.userDB.getAllUsers();
-        User found = null;
-        for (User u : users) {
-            if (u.getEmail().equalsIgnoreCase(email) && u.getPasswordHash().equals(password)) {
-                found = u;
-                break;
-            }
-        }
+        Toast.makeText(this, "Authenticating with Cloud...", Toast.LENGTH_SHORT).show();
 
-        if (found != null) {
-            // Auto-detect role based on store ownership!
-            String storeId = dbManager.storeDB.getStoreIdByOwner(found.getUserId());
-            if (storeId != null) {
-                sessionManager.createLoginSession(found.getUserId(), "seller");
-                sessionManager.setStoreId(storeId);
-                startActivity(new Intent(this, SellerHomeActivity.class));
-            } else {
-                sessionManager.createLoginSession(found.getUserId(), "user");
-                startActivity(new Intent(this, UserHomeActivity.class));
-            }
-            finishAffinity();
-        } else {
-            Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
-        }
+        FirebaseFirestore.getInstance().collection("users")
+                .whereEqualTo("email", email)
+                .whereEqualTo("passwordHash", password)
+                .get()
+                .addOnSuccessListener(this, snapshots -> {
+                    if (!snapshots.isEmpty()) {
+                        String userId = snapshots.getDocuments().get(0).getId();
+                        checkStoreOwnershipAndLaunch(userId);
+                    } else {
+                        Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(this, e -> Toast.makeText(this, "Login Failed", Toast.LENGTH_SHORT).show());
+    }
+
+    private void checkStoreOwnershipAndLaunch(String userId) {
+        FirebaseFirestore.getInstance().collection("stores")
+                .whereEqualTo("owner_id", userId)
+                .get()
+                .addOnSuccessListener(this, storeSnap -> {
+                    String role = "user";
+                    if (!storeSnap.isEmpty()) {
+                        role = "seller";
+                        DocumentSnapshot storeDoc = storeSnap.getDocuments().get(0);
+                        String storeId = storeDoc.contains("storeId") ? storeDoc.getString("storeId") :
+                                storeDoc.contains("store_id") ? storeDoc.getString("store_id") : storeDoc.getId();
+                        sessionManager.setStoreId(storeId);
+                    }
+
+                    sessionManager.createLoginSession(userId, role);
+                    Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
+
+                    startActivity(new Intent(this, "seller".equals(role) ? SellerHomeActivity.class : UserHomeActivity.class));
+                    finishAffinity();
+                });
     }
 
     @Override

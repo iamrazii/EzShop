@@ -49,12 +49,9 @@ public class EditUserDetailsActivity extends AppCompatActivity {
 
         btnSaveDetails.setOnClickListener(v -> saveChanges());
 
-        // Setup the Custom Back Button warning
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
-            public void handleOnBackPressed() {
-                showQuitWarningDialog();
-            }
+            public void handleOnBackPressed() { showQuitWarningDialog(); }
         });
 
         findViewById(R.id.btnBackEdit).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
@@ -62,16 +59,23 @@ public class EditUserDetailsActivity extends AppCompatActivity {
 
     private void loadUserData() {
         String userId = sessionManager.getUserId();
-        currentUser = dbManager.userDB.getUserById(userId);
+        if (userId == null) return;
 
-        if (currentUser != null) {
-            etName.setText(currentUser.getName());
-            etEmail.setText(currentUser.getEmail());
-            etAddress.setText(currentUser.getDefaultShippingAddress());
-        }
+        dbManager.userDB.getUserById(userId).addOnSuccessListener(this, documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                currentUser = documentSnapshot.toObject(User.class);
+                if (currentUser != null) {
+                    etName.setText(currentUser.getName());
+                    etEmail.setText(currentUser.getEmail());
+                    etAddress.setText(currentUser.getDefaultShippingAddress());
+                }
+            }
+        });
     }
 
     private void saveChanges() {
+        if (currentUser == null) return;
+
         String newName = etName.getText().toString().trim();
         String newAddress = etAddress.getText().toString().trim();
 
@@ -83,15 +87,12 @@ public class EditUserDetailsActivity extends AppCompatActivity {
         currentUser.setName(newName);
         currentUser.setDefaultShippingAddress(newAddress);
 
-        // Call the integer-based updateUser method
-        int rowsUpdated = dbManager.userDB.updateUser(currentUser);
-
-        if (rowsUpdated > 0) {
-            Toast.makeText(this, "Details updated successfully!", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            Toast.makeText(this, "Update failed. Try again.", Toast.LENGTH_SHORT).show();
-        }
+        dbManager.userDB.updateUser(currentUser)
+                .addOnSuccessListener(this, aVoid -> {
+                    Toast.makeText(this, "Details updated successfully!", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(this, e -> Toast.makeText(this, "Update failed.", Toast.LENGTH_SHORT).show());
     }
 
     private void showQuitWarningDialog() {

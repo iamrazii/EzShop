@@ -22,6 +22,8 @@ import com.example.ezshop.models.OrderItem;
 import com.example.ezshop.models.Product;
 import com.example.ezshop.models.User;
 import com.example.ezshop.utilities.SessionManager;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import java.util.ArrayList;
 
 public class CheckoutActivity extends AppCompatActivity {
@@ -32,12 +34,12 @@ public class CheckoutActivity extends AppCompatActivity {
     private RadioButton rbEzShopBalance, rbCOD;
     private TextView tvTotal, tvEzpayBalance, tvPromoCode;
     private double totalPrice;
+    private User currentUser;
+    private ArrayList<CartItem> currentCart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // This prevents the UI from overlapping with the camera notch
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_checkout);
 
@@ -59,10 +61,11 @@ public class CheckoutActivity extends AppCompatActivity {
         tvTotal = findViewById(R.id.tvTotal);
         tvEzpayBalance = findViewById(R.id.tvEzpayBalance);
         tvPromoCode = findViewById(R.id.tvPromoCode);
+        RecyclerView rvItems = findViewById(R.id.rvCheckoutItems);
+        rvItems.setLayoutManager(new LinearLayoutManager(this));
 
         tvTotal.setText(String.format("$%.2f", totalPrice));
 
-        // Make Radio Buttons Mutually Exclusive
         rbEzShopBalance.setOnClickListener(v -> {
             rbEzShopBalance.setChecked(true);
             rbCOD.setChecked(false);
@@ -74,16 +77,21 @@ public class CheckoutActivity extends AppCompatActivity {
         });
 
         String userId = sessionManager.getUserId();
-        User user = dbManager.userDB.getUserById(userId);
-        if (user != null) {
-            etShippingAddress.setText(user.getDefaultShippingAddress());
-            tvEzpayBalance.setText(String.format("Balance $%.3f", user.getWalletBalance()));
-        }
 
-        RecyclerView rvItems = findViewById(R.id.rvCheckoutItems);
-        rvItems.setLayoutManager(new LinearLayoutManager(this));
-        ArrayList<CartItem> cartItems = dbManager.cartItemDB.getCartForUser(userId);
-        rvItems.setAdapter(new CheckoutItemAdapter(this, cartItems, dbManager));
+        // Async Loading
+        dbManager.userDB.getUserById(userId).addOnSuccessListener(this, doc -> {
+            if (doc.exists()) {
+                currentUser = doc.toObject(User.class);
+                etShippingAddress.setText(currentUser.getDefaultShippingAddress());
+                tvEzpayBalance.setText(String.format("Balance $%.3f", currentUser.getWalletBalance()));
+            }
+        });
+
+        dbManager.cartItemDB.getCartForUser(userId).addOnSuccessListener(this, snap -> {
+            currentCart = new ArrayList<>();
+            for (DocumentSnapshot doc : snap) currentCart.add(doc.toObject(CartItem.class));
+            rvItems.setAdapter(new CheckoutItemAdapter(this, currentCart, dbManager));
+        });
 
         tvPromoCode.setText("EZLHAPPYS (Discount 20%)");
 
@@ -92,69 +100,76 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void placeOrder() {
+        if (currentUser == null || currentCart == null || currentCart.isEmpty()) {
+            Toast.makeText(this, "Data is still loading or cart is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String address = etShippingAddress.getText().toString().trim();
         if (address.isEmpty()) {
             Toast.makeText(this, "Please enter a shipping address", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String paymentMethod;
-        if (rbEzShopBalance.isChecked()) paymentMethod = "EzShop Balance";
-        else paymentMethod = "Cash On Delivery";
+        String paymentMethod = rbEzShopBalance.isChecked() ? "EzShop Balance" : "Cash On Delivery";
 
-        String userId = sessionManager.getUserId();
-        User user = dbManager.userDB.getUserById(userId);
-
-        // CHECK BALANCE ONLY IF PAYING WITH EZSHOP BALANCE
-        if (paymentMethod.equals("EzShop Balance") && user.getWalletBalance() < totalPrice) {
+        if (paymentMethod.equals("EzShop Balance") && currentUser.getWalletBalance() < totalPrice) {
             Toast.makeText(this, "Insufficient EzShop balance! Please top up.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        ArrayList<CartItem> cartItems = dbManager.cartItemDB.getCartForUser(userId);
-        if (cartItems.isEmpty()) {
-            Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        // We must fetch products one last time to capture the exact price at checkout
+        dbManager.productDB.getAllProducts().addOnSuccessListener(this, prodSnap -> {
+            ArrayList<Product> allProducts = new ArrayList<>();
+            for (DocumentSnapshot doc : prodSnap) allProducts.add(doc.toObject(Product.class));
 
-        ArrayList<Product> allProducts = dbManager.productDB.getAllProducts();
-        ArrayList<OrderItem> orderItems = new ArrayList<>();
-        for (CartItem item : cartItems) {
-            for (Product p : allProducts) {
-                if (p.getProductId().equals(item.getProductId())) {
-                    OrderItem oi = new OrderItem();
-                    oi.setProductId(item.getProductId());
-                    oi.setQuantity(item.getQuantity());
-                    oi.setPriceAtPurchase(p.getPrice());
-                    orderItems.add(oi);
-                    break;
+            ArrayList<OrderItem> orderItems = new ArrayList<>();
+            for (CartItem item : currentCart) {
+                for (Product p : allProducts) {
+                    if (p.getProductId().equals(item.getProductId())) {
+                        OrderItem oi = new OrderItem();
+                        oi.setProductId(item.getProductId());
+                        oi.setQuantity(item.getQuantity());
+                        oi.setPriceAtPurchase(p.getPrice());
+                        orderItems.add(oi);
+                        break;
+                    }
                 }
             }
-        }
 
-        Order order = new Order();
-        order.setUserId(userId);
-        order.setShippingAddress(address);
-        order.setPaymentMethod(paymentMethod);
-        order.setTotalPrice(totalPrice);
-        order.setPromoId(null);
+            Order order = new Order();
+            order.setUserId(currentUser.getUserId());
+            order.setShippingAddress(address);
+            order.setPaymentMethod(paymentMethod);
+            order.setTotalPrice(totalPrice);
+            order.setPromoId(null);
 
-        boolean success = dbManager.orderDB.placeOrder(order, orderItems);
-        if (success) {
-            // DEDUCT BALANCE AFTER SUCCESSFUL ORDER IF USING EZSHOP BALANCE
-            if (paymentMethod.equals("EzShop Balance")) {
-                user.setWalletBalance(user.getWalletBalance() - totalPrice);
-                dbManager.userDB.updateUser(user);
-            }
+            // Using the massive Firebase Batch Writer we built
+            dbManager.orderDB.placeOrder(order, orderItems).addOnSuccessListener(this, aVoid -> {
 
-            Toast.makeText(this, "Order placed successfully! 🎉", Toast.LENGTH_LONG).show();
-            Intent intent = new Intent(this, UserHomeActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
-        } else {
-            Toast.makeText(this, "Failed to place order. Please try again.", Toast.LENGTH_SHORT).show();
-        }
+                if (paymentMethod.equals("EzShop Balance")) {
+                    currentUser.setWalletBalance(currentUser.getWalletBalance() - totalPrice);
+                    dbManager.userDB.updateUser(currentUser);
+                }
+
+                // Increment sold counts
+                for (OrderItem item : orderItems) {
+                    dbManager.productDB.incrementSoldCount(item.getProductId(), item.getQuantity());
+                }
+
+                // Clear the Cart Items from Firebase!
+                for (CartItem cItem : currentCart) {
+                    dbManager.cartItemDB.deleteCartItem(cItem.getCartItemId());
+                }
+
+                Toast.makeText(this, "Order placed successfully!", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(this, UserHomeActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+
+            }).addOnFailureListener(this, e -> Toast.makeText(this, "Failed to place order.", Toast.LENGTH_SHORT).show());
+        });
     }
 
     @Override

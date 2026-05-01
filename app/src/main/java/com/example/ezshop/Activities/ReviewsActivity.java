@@ -17,6 +17,7 @@ import com.example.ezshop.R;
 import com.example.ezshop.adapters.ReviewsAdapter;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Review;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 
@@ -41,28 +42,28 @@ public class ReviewsActivity extends AppCompatActivity {
         btnBackReviews.setOnClickListener(v -> finish());
 
         dbManager = new DBManager(this);
-        try {
-            dbManager.open();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        dbManager.open();
 
         rvAllReviews.setLayoutManager(new LinearLayoutManager(this));
         Intent intent = getIntent();
         String productId = intent.getStringExtra("PRODUCT_ID");
 
         if (productId != null) {
-            ArrayList<Pair<Review ,String>> allReviews = dbManager.reviewDB.getReviewsByProductId(productId);
-            ReviewsAdapter adapter = new ReviewsAdapter(this, allReviews, false);
-            rvAllReviews.setAdapter(adapter);
+            // NEW WAY: Asynchronous Firebase Call
+            dbManager.reviewDB.getReviewsByProductId(productId).addOnSuccessListener(this, snap -> {
+                ArrayList<Pair<Review, String>> allReviews = new ArrayList<>();
+                for (DocumentSnapshot doc : snap) {
+                    allReviews.add(new Pair<>(doc.toObject(Review.class), "User"));
+                }
+                ReviewsAdapter adapter = new ReviewsAdapter(this, allReviews, false);
+                rvAllReviews.setAdapter(adapter);
+            });
         }
-
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (dbManager != null) dbManager.close();
-
     }
 }

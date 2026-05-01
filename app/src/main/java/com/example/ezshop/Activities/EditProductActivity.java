@@ -26,7 +26,6 @@ public class EditProductActivity extends AppCompatActivity {
         etPrice = findViewById(R.id.etUpdatePrice);
         etDesc = findViewById(R.id.etUpdateDesc);
 
-        // Retrieve data passed from the Fragment
         productId = getIntent().getStringExtra("PRODUCT_ID");
         etName.setText(getIntent().getStringExtra("PRODUCT_NAME"));
         etPrice.setText(String.valueOf(getIntent().getDoubleExtra("PRODUCT_PRICE", 0.0)));
@@ -35,8 +34,6 @@ public class EditProductActivity extends AppCompatActivity {
         findViewById(R.id.ivEditBack).setOnClickListener(v -> finish());
         findViewById(R.id.btnFinalUpdate).setOnClickListener(v -> updateInDB());
     }
-
-    // Inside EditProductActivity.java
 
     private void updateInDB() {
         String name = etName.getText().toString().trim();
@@ -49,18 +46,17 @@ public class EditProductActivity extends AppCompatActivity {
         }
 
         Product p = new Product();
-        p.setProductId(this.productId); // The ID from getIntent()
+        p.setProductId(this.productId);
         p.setName(name);
         p.setPrice(Double.parseDouble(priceStr));
         p.setDescription(desc);
 
-        // Call the database
-        if (dbManager.productDB.updateProduct(p)) {
-            Toast.makeText(this, "Product Updated!", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            Toast.makeText(this, "Update failed - ID not found", Toast.LENGTH_SHORT).show();
-        }
+        dbManager.productDB.updateProduct(p)
+                .addOnSuccessListener(this, aVoid -> {
+                    Toast.makeText(this, "Product Updated!", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(this, e -> Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show());
     }
 
     @Override

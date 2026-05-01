@@ -13,6 +13,8 @@ import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.CartItem;
 import com.example.ezshop.models.Product;
 import com.example.ezshop.utilities.SessionManager;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import java.util.ArrayList;
 
 public class CartActivity extends AppCompatActivity {
@@ -53,22 +55,31 @@ public class CartActivity extends AppCompatActivity {
 
     private void loadCart() {
         String userId = sessionManager.getUserId();
-        cartItems = dbManager.cartItemDB.getCartForUser(userId);
-        totalPrice = 0;
 
-        ArrayList<Product> allProducts = dbManager.productDB.getAllProducts();
-        for (CartItem item : cartItems) {
-            for (Product p : allProducts) {
-                if (p.getProductId() == item.getProductId()) {
-                    totalPrice += p.getPrice() * item.getQuantity();
-                    break;
+        dbManager.cartItemDB.getCartForUser(userId).addOnSuccessListener(this, cartSnap -> {
+            cartItems = new ArrayList<>();
+            for (DocumentSnapshot doc : cartSnap) cartItems.add(doc.toObject(CartItem.class));
+
+            // Fetch products to calculate live total
+            dbManager.productDB.getAllProducts().addOnSuccessListener(this, prodSnap -> {
+                ArrayList<Product> allProducts = new ArrayList<>();
+                for (DocumentSnapshot doc : prodSnap) allProducts.add(doc.toObject(Product.class));
+
+                totalPrice = 0;
+                for (CartItem item : cartItems) {
+                    for (Product p : allProducts) {
+                        if (p.getProductId() != null && p.getProductId().equals(item.getProductId())) {
+                            totalPrice += p.getPrice() * item.getQuantity();
+                            break;
+                        }
+                    }
                 }
-            }
-        }
-        tvTotal.setText(String.format("$%.2f", totalPrice));
+                tvTotal.setText(String.format("$%.2f", totalPrice));
 
-        CartAdapter adapter = new CartAdapter(this, cartItems, dbManager, userId, this::loadCart);
-        rvCartItems.setAdapter(adapter);
+                CartAdapter adapter = new CartAdapter(this, cartItems, dbManager, userId, this::loadCart);
+                rvCartItems.setAdapter(adapter);
+            });
+        });
     }
 
     @Override

@@ -20,8 +20,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ezshop.R;
 import com.example.ezshop.adapters.ReviewsAdapter;
 import com.example.ezshop.database.DBManager;
+import com.example.ezshop.models.CartItem;
 import com.example.ezshop.models.Review;
 import com.example.ezshop.utilities.SessionManager;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import java.util.ArrayList;
 
 public class ProductDetailsActivity extends AppCompatActivity {
@@ -51,7 +54,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
         sessionManager = new SessionManager(this);
         init();
 
-        // Hide buyer elements if the user is a Seller
         if (sessionManager.getUserType().equalsIgnoreCase("Seller")) {
             prodDetailBottomBar.setVisibility(View.GONE);
             layoutStoreInfo.setVisibility(View.GONE);
@@ -63,11 +65,9 @@ public class ProductDetailsActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent == null) return;
 
-        // FIXED: Effectively final declaration to avoid local variable error in lambda
         final String productId = intent.hasExtra("PRODUCT_ID") ?
                 intent.getStringExtra("PRODUCT_ID") : intent.getStringExtra("product_id");
 
-        // Set Basic Text Data
         tvDetailName.setText(intent.getStringExtra("PRODUCT_NAME"));
         tvDetailPrice.setText("$ " + String.format("%.2f", intent.getDoubleExtra("PRODUCT_PRICE", 0.0)));
         tvDetailRating.setText(String.valueOf(intent.getDoubleExtra("PRODUCT_RATING", 0.0)));
@@ -75,17 +75,15 @@ public class ProductDetailsActivity extends AppCompatActivity {
         tvDetailCondition.setText(": " + intent.getStringExtra("PRODUCT_CONDITION"));
         tvDetailWeight.setText(": " + intent.getIntExtra("PRODUCT_WEIGHT", 0) + " Gram");
 
-        // Set Store Data
         String storeName = intent.getStringExtra("STORE_NAME");
         tvDetailStoreName.setText(": " + (storeName != null ? storeName : "Unknown"));
         tvStoreTitle.setText(storeName != null ? storeName : "Unknown");
         tvStoreLocation.setText("Online • " + intent.getStringExtra("PRODUCT_LOCATION"));
         tvDetailDesc.setText(intent.getStringExtra("PRODUCT_DESCRIPTION"));
 
-        // Set Image Data (Handles both local URI and Drawable strings)
         String imageName = intent.getStringExtra("PRODUCT_IMAGE");
         if (imageName != null) {
-            if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
+            if (imageName.startsWith("content://") || imageName.startsWith("file://") || imageName.startsWith("http")) {
                 ivDetailImage.setImageURI(Uri.parse(imageName));
             } else {
                 int imageId = getResources().getIdentifier(imageName, "drawable", getPackageName());
@@ -94,32 +92,39 @@ public class ProductDetailsActivity extends AppCompatActivity {
         }
 
         if (productId != null) {
-            // Load Reviews
-            ArrayList<Pair<Review, String>> productReviews = dbManager.reviewDB.getReviewsByProductId(productId);
-            ReviewsAdapter reviewAdapter = new ReviewsAdapter(this, productReviews, true);
-            rvReviews.setLayoutManager(new LinearLayoutManager(this));
-            rvReviews.setAdapter(reviewAdapter);
+            dbManager.reviewDB.getReviewsByProductId(productId).addOnSuccessListener(this, snap -> {
+                ArrayList<Pair<Review, String>> productReviews = new ArrayList<>();
+                for (DocumentSnapshot doc : snap) {
+                    // Temporarily mapping user name as "User" since full JOIN is async.
+                    productReviews.add(new Pair<>(doc.toObject(Review.class), "User"));
+                }
 
-            // Handle "See All Reviews" visibility
-            if (productReviews.size() <= 3) {
-                btnSeeAllReviews.setVisibility(View.GONE);
-            } else {
-                btnSeeAllReviews.setOnClickListener(v -> {
-                    Intent reviewIntent = new Intent(ProductDetailsActivity.this, ReviewsActivity.class);
-                    reviewIntent.putExtra("PRODUCT_ID", productId);
-                    startActivity(reviewIntent);
-                });
-            }
+                ReviewsAdapter reviewAdapter = new ReviewsAdapter(this, productReviews, true);
+                rvReviews.setLayoutManager(new LinearLayoutManager(this));
+                rvReviews.setAdapter(reviewAdapter);
 
-            // Handle Add to Cart
+                if (productReviews.size() <= 3) {
+                    btnSeeAllReviews.setVisibility(View.GONE);
+                } else {
+                    btnSeeAllReviews.setOnClickListener(v -> {
+                        Intent reviewIntent = new Intent(ProductDetailsActivity.this, ReviewsActivity.class);
+                        reviewIntent.putExtra("PRODUCT_ID", productId);
+                        startActivity(reviewIntent);
+                    });
+                }
+            });
+
             btnAddToCart.setOnClickListener(v -> {
                 if (!sessionManager.isLoggedIn()) {
                     Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                // Adds item to database cart
-                dbManager.cartItemDB.addToCart(sessionManager.getUserId(), productId, "", 1);
-                Toast.makeText(this, "Added to cart! 🛒", Toast.LENGTH_SHORT).show();
+
+                // Pure Firebase Cart Addition
+                CartItem newItem = new CartItem(null, sessionManager.getUserId(), productId, 1);
+                dbManager.cartItemDB.saveCartItem(newItem).addOnSuccessListener(this, aVoid ->
+                        Toast.makeText(this, "Added to cart! 🛒", Toast.LENGTH_SHORT).show()
+                );
             });
         }
     }
@@ -128,7 +133,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
         dbManager = new DBManager(this);
         dbManager.open();
 
-        // Bind Views
         btnBack = findViewById(R.id.prodDetailBtnBack);
         ivDetailImage = findViewById(R.id.prodDetailIvDetailImage);
         tvDetailName = findViewById(R.id.prodDetailTvDetailName);
@@ -145,7 +149,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
         btnSeeAllReviews = findViewById(R.id.prodDetailBtnSeeAllReviews);
         rvReviews = findViewById(R.id.prodDetailRvReviews);
 
-        // Layout Containers
         prodDetailBottomBar = findViewById(R.id.prodDetailBottomBar);
         layoutStoreInfo = findViewById(R.id.layoutStoreInfo);
         rowStorefront = findViewById(R.id.rowStorefront);

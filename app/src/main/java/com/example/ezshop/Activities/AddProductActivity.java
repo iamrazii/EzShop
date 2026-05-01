@@ -7,7 +7,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
@@ -25,13 +24,12 @@ import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Category;
 import com.example.ezshop.models.Product;
-import com.example.ezshop.models.Store;
-import com.example.ezshop.models.User;
 import com.example.ezshop.utilities.SessionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +38,7 @@ import java.util.Map;
 public class AddProductActivity extends AppCompatActivity {
 
     private DBManager db;
+    private SessionManager sessionManager;
     private ArrayList<Category> categoryList;
     private String selectedCategoryId = null;
     private String selectedLocalImageUri = "";
@@ -87,9 +86,7 @@ public class AddProductActivity extends AppCompatActivity {
 
         getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
             @Override
-            public void handleOnBackPressed() {
-                showQuitWarningDialog();
-            }
+            public void handleOnBackPressed() { showQuitWarningDialog(); }
         });
 
         findViewById(R.id.AddProdbtnBack).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
@@ -102,16 +99,8 @@ public class AddProductActivity extends AppCompatActivity {
         String desc = etProductDesc.getText().toString().trim();
         String condition = actvCondition.getText().toString().trim();
 
-        if (selectedLocalImageUri.isEmpty()) {
-            Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (selectedCategoryId == null) {
-            Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (name.isEmpty() || priceStr.isEmpty() || weightStr.isEmpty() || desc.isEmpty() || condition.isEmpty()) {
-            Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
+        if (selectedLocalImageUri.isEmpty() || selectedCategoryId == null || name.isEmpty() || priceStr.isEmpty() || weightStr.isEmpty() || desc.isEmpty() || condition.isEmpty()) {
+            Toast.makeText(this, "Please fill out all fields and select an image.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -121,21 +110,18 @@ public class AddProductActivity extends AppCompatActivity {
     private void uploadToCloudinary(Uri uri) {
         btnPublishProduct.setEnabled(false);
         btnPublishProduct.setText("Uploading...");
-        Toast.makeText(this, "Uploading image to cloud...", Toast.LENGTH_SHORT).show();
 
         MediaManager.get().upload(uri)
                 .unsigned("ezshop_products")
                 .callback(new UploadCallback() {
-                    @Override
-                    public void onStart(String requestId) {}
-
-                    @Override
-                    public void onProgress(String requestId, long bytes, long totalBytes) {}
+                    @Override public void onStart(String requestId) {}
+                    @Override public void onProgress(String requestId, long bytes, long totalBytes) {}
+                    @Override public void onReschedule(String requestId, ErrorInfo error) {}
 
                     @Override
                     public void onSuccess(String requestId, Map resultData) {
                         String imageUrl = resultData.get("secure_url").toString();
-                        saveProductToSqlite(imageUrl);
+                        saveProductToFirebase(imageUrl);
                     }
 
                     @Override
@@ -146,24 +132,24 @@ public class AddProductActivity extends AppCompatActivity {
                             Toast.makeText(AddProductActivity.this, "Upload failed: " + error.getDescription(), Toast.LENGTH_LONG).show();
                         });
                     }
-
-                    @Override
-                    public void onReschedule(String requestId, ErrorInfo error) {}
                 }).dispatch();
     }
 
-    private void saveProductToSqlite(String remoteUrl) {
+    private void saveProductToFirebase(String remoteUrl) {
         String name = etProductName.getText().toString().trim();
         double price = Double.parseDouble(etProductPrice.getText().toString().trim());
         int weight = Integer.parseInt(etProductWeight.getText().toString().trim());
         String desc = etProductDesc.getText().toString().trim();
         String condition = actvCondition.getText().toString().trim();
 
-        String storeId = db.storeDB.getDummyStoreId();
+        String storeId = sessionManager.getStoreId();
 
         if (storeId == null) {
-            Toast.makeText(this, "Error: Store not found!", Toast.LENGTH_SHORT).show();
-            btnPublishProduct.setEnabled(true);
+            Toast.makeText(this, "Error: Store ID missing!", Toast.LENGTH_SHORT).show();
+            runOnUiThread(() -> {
+                btnPublishProduct.setEnabled(true);
+                btnPublishProduct.setText("Publish Product");
+            });
             return;
         }
 
@@ -179,27 +165,34 @@ public class AddProductActivity extends AppCompatActivity {
         newProduct.setSoldCount(0);
         newProduct.setRatingAverage(0.0f);
 
-        String result = db.productDB.addProduct(newProduct);
-
-        if (result != null) {
+        db.productDB.addProduct(newProduct).addOnSuccessListener(this, aVoid -> {
             Toast.makeText(this, "Product Published Successfully!", Toast.LENGTH_LONG).show();
             finish();
-        } else {
+        }).addOnFailureListener(this, e -> {
             btnPublishProduct.setEnabled(true);
             btnPublishProduct.setText("Publish Product");
             Toast.makeText(this, "Database Insert Failed", Toast.LENGTH_SHORT).show();
-        }
+        });
     }
 
     private void setupDropdowns() {
-        categoryList = db.categoryDB.getAllCategories();
-        ArrayList<String> categoryNames = new ArrayList<>();
-        for (Category c : categoryList) categoryNames.add(c.getName());
+        db.categoryDB.getAllCategories().addOnSuccessListener(this, queryDocumentSnapshots -> {
+            categoryList = new ArrayList<>();
+            ArrayList<String> categoryNames = new ArrayList<>();
 
-        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoryNames);
-        actvCategory.setAdapter(categoryAdapter);
-        actvCategory.setOnItemClickListener((parent, view, position, id) -> {
-            selectedCategoryId = categoryList.get(position).getCategoryId();
+            for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                Category c = doc.toObject(Category.class);
+                if (c != null) {
+                    categoryList.add(c);
+                    categoryNames.add(c.getName());
+                }
+            }
+
+            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoryNames);
+            actvCategory.setAdapter(categoryAdapter);
+            actvCategory.setOnItemClickListener((parent, view, position, id) -> {
+                selectedCategoryId = categoryList.get(position).getCategoryId();
+            });
         });
 
         String[] conditions = new String[]{"New", "Used - Like New", "Used - Fair"};
@@ -218,12 +211,8 @@ public class AddProductActivity extends AppCompatActivity {
 
     private void init() {
         db = new DBManager(this);
-        try {
-            db.open();
-            db.categoryDB.seedCategories();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        db.open();
+        sessionManager = new SessionManager(this);
 
         try {
             Map<String, Object> config = new HashMap<>();
