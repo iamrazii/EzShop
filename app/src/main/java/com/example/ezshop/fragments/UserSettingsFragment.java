@@ -115,9 +115,13 @@ public class UserSettingsFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     if (isAdded() && getContext() != null) {
-                        Toast.makeText(requireContext(), "Failed to load orders", Toast.LENGTH_SHORT).show();
+                        // Log the exact error to Android Studio's Logcat
+                        android.util.Log.e("FirestoreError", "Error loading orders", e);
+
+                        // Show the specific error in the Toast to help you debug quickly
+                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
-                });
+                });;
     }
 
     private void showLogoutDialog() {

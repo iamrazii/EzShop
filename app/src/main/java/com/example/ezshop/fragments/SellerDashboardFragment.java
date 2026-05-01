@@ -115,7 +115,7 @@ public class SellerDashboardFragment extends Fragment {
         }
 
         SellerProductAdapter topSellerAdapter = new SellerProductAdapter(requireContext(), top5, null, null, null);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false);
         rvTopSellers.setLayoutManager(layoutManager);
         rvTopSellers.setAdapter(topSellerAdapter);
     }

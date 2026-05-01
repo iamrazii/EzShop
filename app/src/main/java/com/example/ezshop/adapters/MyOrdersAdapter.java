@@ -25,10 +25,12 @@ import com.example.ezshop.models.Review;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -40,12 +42,16 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
     private String userId;
     private ArrayList<Product> allProducts;
 
+    // HashSet to store product IDs the user has already reviewed
+    private HashSet<String> reviewedProductIds;
+
     public MyOrdersAdapter(Context context, ArrayList<Order> orders, DBManager dbManager, String userId) {
         this.context = context;
         this.orders = orders;
         this.dbManager = dbManager;
         this.userId = userId;
         this.allProducts = new ArrayList<>();
+        this.reviewedProductIds = new HashSet<>();
 
         // ASYNC FETCH: Grab products to match names and images
         dbManager.productDB.getAllProducts().addOnSuccessListener(snap -> {
@@ -54,6 +60,20 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
             }
             notifyDataSetChanged();
         });
+
+        // ASYNC FETCH: Grab all reviews submitted by this specific user to hide buttons
+        FirebaseFirestore.getInstance().collection("reviews")
+                .whereEqualTo("userId", userId)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    for (DocumentSnapshot doc : snap) {
+                        String reviewedProductId = doc.getString("productId");
+                        if (reviewedProductId != null) {
+                            reviewedProductIds.add(reviewedProductId);
+                        }
+                    }
+                    notifyDataSetChanged(); // Refresh the list to hide buttons
+                });
     }
 
     @NonNull
@@ -82,12 +102,16 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
         else status = "Delivered";
 
         holder.tvOrderStatus.setText(status);
-        holder.llOrderItems.removeAllViews();
 
         if (allProducts.isEmpty()) return; // Wait for products to load
 
         // ASYNC FETCH: Load the individual items inside this specific order
         dbManager.orderDB.getOrderItems(order.getOrderId()).addOnSuccessListener(snap -> {
+
+            // ✅ CRITICAL FIX: Clear the views INSIDE the success listener
+            // This prevents duplicate items from stacking when the view recycles or data updates
+            holder.llOrderItems.removeAllViews();
+
             LayoutInflater inflater = LayoutInflater.from(context);
 
             for (DocumentSnapshot doc : snap) {
@@ -126,14 +150,22 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
                     }
 
                     Product finalMatchedProduct = matchedProduct;
-                    btnReview.setOnClickListener(v -> showReviewDialog(finalMatchedProduct));
+
+                    // Check if the product ID is in our HashSet of reviewed items
+                    if (reviewedProductIds.contains(finalMatchedProduct.getProductId())) {
+                        btnReview.setVisibility(View.GONE); // Hide the button
+                    } else {
+                        btnReview.setVisibility(View.VISIBLE); // Show the button
+                        // Pass the button to the dialog so we can hide it upon successful submission
+                        btnReview.setOnClickListener(v -> showReviewDialog(finalMatchedProduct, btnReview));
+                    }
                 }
                 holder.llOrderItems.addView(productView);
             }
         });
     }
 
-    private void showReviewDialog(Product product) {
+    private void showReviewDialog(Product product, MaterialButton btnReview) {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
         builder.setTitle("Write a Review");
         builder.setMessage("Rate your purchase of " + product.getName());
@@ -184,9 +216,13 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
             SimpleDateFormat sdf = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
             review.setReviewDate(sdf.format(new Date()));
 
-            // ASYNC ADDITION: Show success toast only after Firebase confirms!
+            // Show success toast only after Firebase confirms
             dbManager.reviewDB.addReview(review).addOnSuccessListener(aVoid -> {
                 Toast.makeText(context, "Review submitted! ⭐", Toast.LENGTH_SHORT).show();
+
+                // Add to the local list so it stays hidden on scroll, and hide the button instantly
+                reviewedProductIds.add(product.getProductId());
+                btnReview.setVisibility(View.GONE);
             });
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());

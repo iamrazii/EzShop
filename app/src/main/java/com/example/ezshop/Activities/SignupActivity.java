@@ -82,7 +82,7 @@ public class SignupActivity extends AppCompatActivity {
         user.setName(name);
         user.setEmail(email);
         user.setPasswordHash(password);
-        user.setWalletBalance(58.309); // Starting promo balance
+        user.setWalletBalance(0.00); // Starting promo balance
 
         if (rbSeller.isChecked()) {
             String storeName = etStoreName.getText().toString().trim();
