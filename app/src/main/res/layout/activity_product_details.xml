@@ -305,6 +305,7 @@
 
                     </androidx.cardview.widget.CardView>
 
+                    <!-- Notice this still has layout_weight="1", pushing the button to the right -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -328,6 +329,21 @@
                             android:textColor="#757575"
                             android:textSize="12sp" />
                     </LinearLayout>
+
+                    <!-- ✨ NEW: Chat Button ✨ -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnChatWithSeller"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="8dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="💬 Chat"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#2196F3"
+                        app:cornerRadius="8dp" />
 
                 </LinearLayout>
             </LinearLayout>

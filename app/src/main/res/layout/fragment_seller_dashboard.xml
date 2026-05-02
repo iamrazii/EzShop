@@ -180,17 +180,41 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnDashAddProduct"
+                <!-- NEW: Split Button Row for Add Product & Inbox -->
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    android:text="➕ ADD NEW PRODUCT"
-                    android:textColor="@color/primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="#FFFFFF"
-                    app:cornerRadius="8dp" />
+                    android:orientation="horizontal"
+                    android:baselineAligned="false">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDashAddProduct"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="➕ ADD"
+                        android:textColor="@color/primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#FFFFFF"
+                        app:cornerRadius="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSellerDashInbox"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="💬 INBOX"
+                        android:textColor="@color/primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#FFFFFF"
+                        app:cornerRadius="8dp" />
+                </LinearLayout>
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

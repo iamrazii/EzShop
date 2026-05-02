@@ -42,8 +42,16 @@ public class SellerDashboardFragment extends Fragment {
         tvStoreRating = view.findViewById(R.id.tvStoreRating);
         rvTopSellers = view.findViewById(R.id.rvTopSellers);
 
+        // Add Product Button
         view.findViewById(R.id.btnDashAddProduct).setOnClickListener(v -> {
             startActivity(new Intent(requireContext(), AddProductActivity.class));
+        });
+
+        view.findViewById(R.id.btnSellerDashInbox).setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(((ViewGroup) requireView().getParent()).getId(), new InboxFragment())
+                    .addToBackStack(null)
+                    .commit();
         });
 
         sessionManager = new SessionManager(requireContext());

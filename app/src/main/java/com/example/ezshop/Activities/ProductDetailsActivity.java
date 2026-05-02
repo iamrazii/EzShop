@@ -23,10 +23,13 @@ import com.example.ezshop.R;
 import com.example.ezshop.adapters.ReviewsAdapter;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.CartItem;
+import com.example.ezshop.models.Product;
 import com.example.ezshop.models.Review;
+import com.example.ezshop.models.Store;
 import com.example.ezshop.models.User;
 import com.example.ezshop.utilities.SessionManager;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 // ✨ NEW GEMINI SDK IMPORTS ✨
 import com.google.ai.client.generativeai.GenerativeModel;
@@ -46,7 +49,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
     private TextView tvDetailName, tvDetailPrice, tvDetailRating, tvDetailSold;
     private TextView tvDetailCondition, tvDetailWeight, tvDetailStoreName, tvDetailDesc;
     private TextView tvStoreTitle, tvStoreLocation, btnSeeAllReviews;
-    private Button btnAddToCart;
+    private Button btnAddToCart, ChatwithSeller;
     private LinearLayout prodDetailBottomBar, layoutStoreInfo, rowStorefront;
     private RecyclerView rvReviews;
 
@@ -56,6 +59,9 @@ public class ProductDetailsActivity extends AppCompatActivity {
 
     private DBManager dbManager;
     private SessionManager sessionManager;
+
+    // 🔥 NEW: Global variable to hold the store ID for the chat hop
+    private String actualStoreId = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +92,19 @@ public class ProductDetailsActivity extends AppCompatActivity {
         final String productId = intent.hasExtra("PRODUCT_ID") ?
                 intent.getStringExtra("PRODUCT_ID") : intent.getStringExtra("product_id");
 
+        if (productId != null) {
+            FirebaseFirestore.getInstance().collection("products").document(productId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            Product p = documentSnapshot.toObject(Product.class);
+                            if (p != null && p.getStoreId() != null) {
+                                actualStoreId = p.getStoreId();
+                            }
+                        }
+                    });
+        }
+
         tvDetailName.setText(intent.getStringExtra("PRODUCT_NAME"));
         tvDetailPrice.setText("$ " + String.format("%.2f", intent.getDoubleExtra("PRODUCT_PRICE", 0.0)));
         tvDetailRating.setText(String.valueOf(intent.getDoubleExtra("PRODUCT_RATING", 0.0)));
@@ -111,12 +130,47 @@ public class ProductDetailsActivity extends AppCompatActivity {
             ivDetailImage.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
+        ChatwithSeller.setOnClickListener(v -> {
+            if (actualStoreId == null) {
+                Toast.makeText(ProductDetailsActivity.this, "Loading store info... please wait.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Temporarily disable button to prevent spam clicking
+            ChatwithSeller.setEnabled(false);
+            ChatwithSeller.setText("Connecting...");
+
+            // Look up the store to find the owner's User ID
+            FirebaseFirestore.getInstance().collection("stores").document(actualStoreId)
+                    .get()
+                    .addOnSuccessListener(storeSnap -> {
+                        // Reset button
+                        ChatwithSeller.setEnabled(true);
+                        ChatwithSeller.setText("💬 Chat");
+
+                        if (storeSnap.exists()) {
+                            Store store = storeSnap.toObject(Store.class);
+                            if (store != null && store.getOwner_id() != null) {
+                                Intent i = new Intent(ProductDetailsActivity.this, ChatActivity.class);
+                                i.putExtra("CHAT_PARTNER_ID", store.getOwner_id());
+                                startActivity(i);
+                            } else {
+                                Toast.makeText(ProductDetailsActivity.this, "Could not find store owner.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        ChatwithSeller.setEnabled(true);
+                        ChatwithSeller.setText("💬 Chat");
+                        Toast.makeText(ProductDetailsActivity.this, "Network error.", Toast.LENGTH_SHORT).show();
+                    });
+        });
+
         if (productId != null) {
             dbManager.reviewDB.getReviewsByProductId(productId).addOnSuccessListener(this, snap -> {
                 ArrayList<Pair<Review, String>> productReviews = new ArrayList<>();
                 StringBuilder allCommentsForAI = new StringBuilder();
 
-                // 1. Set up the empty adapter immediately so the screen doesn't lag
                 ReviewsAdapter reviewAdapter = new ReviewsAdapter(this, productReviews, true);
                 rvReviews.setLayoutManager(new LinearLayoutManager(this));
                 rvReviews.setAdapter(reviewAdapter);
@@ -130,7 +184,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
                     return;
                 }
 
-                // 2. Loop through the reviews and fetch the real user data
                 for (DocumentSnapshot doc : snap) {
                     Review r = doc.toObject(Review.class);
                     if (r != null) {
@@ -155,7 +208,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
                                 allCommentsForAI.append("- ").append(r.getComment()).append("\n");
                             }
 
-                            // 3. Check if this is the LAST review finishing its download
                             if (productReviews.size() == totalReviews) {
 
                                 // Now that everything is loaded, trigger the AI
@@ -221,6 +273,8 @@ public class ProductDetailsActivity extends AppCompatActivity {
         btnSeeAllReviews = findViewById(R.id.prodDetailBtnSeeAllReviews);
         rvReviews = findViewById(R.id.prodDetailRvReviews);
 
+        ChatwithSeller = findViewById(R.id.btnChatWithSeller);
+
         prodDetailBottomBar = findViewById(R.id.prodDetailBottomBar);
         layoutStoreInfo = findViewById(R.id.layoutStoreInfo);
         rowStorefront = findViewById(R.id.rowStorefront);
@@ -230,9 +284,8 @@ public class ProductDetailsActivity extends AppCompatActivity {
         tvAiSummaryText = findViewById(R.id.tvAiSummaryText);
     }
 
-    // ✨ REAL GEMINI API IMPLEMENTATION ✨
     private void generateAISummary(String reviewsText) {
-        // 1. Initialize Model (Using Flash because it is incredibly fast and cheap)
+        // 1. Initialize Model
         GenerativeModel gm = new GenerativeModel("gemini-2.5-flash", "AIzaSyACbNXePoBtBZlhoA7wM9Bx3Q41mcdP3_g");
         GenerativeModelFutures model = GenerativeModelFutures.from(gm);
 
