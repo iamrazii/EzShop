@@ -105,14 +105,12 @@ public class UserDashboardFragment extends Fragment {
 
     private void updateBestSellersUI() {
         int limit = isBestExpanded ? 6 : 3;
-        // Pass the FULL list, but tell the adapter to limit the display
         ProductCardAdapter bestAdapter = new ProductCardAdapter(cachedProducts, limit, this::launchDetail);
         rvBestSellers.setAdapter(bestAdapter);
     }
 
     private void updateRecommendationsUI() {
         int limit = isRecExpanded ? 6 : 3;
-        // Pass the FULL list, but tell the adapter to limit the display
         ProductCardAdapter recAdapter = new ProductCardAdapter(cachedRecommendations, limit, this::launchDetail);
         rvRecommendations.setAdapter(recAdapter);
     }
@@ -266,5 +264,6 @@ public class UserDashboardFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadUserData();
+        loadProducts();
     }
 }

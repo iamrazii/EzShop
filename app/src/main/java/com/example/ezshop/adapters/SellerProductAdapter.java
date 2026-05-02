@@ -55,32 +55,26 @@ public class SellerProductAdapter extends RecyclerView.Adapter<SellerProductAdap
 
         // Set the image if it exists
         String imageName = product.getProductimage();
-        if (imageName != null) {
-            if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
-                // Load actual photo from gallery or camera
-                holder.ivProductImage.setImageURI(android.net.Uri.parse(imageName));
-            } else {
-                // Fallback to the default drawables (like "macbook")
-                int imgId = context.getResources().getIdentifier(imageName, "drawable", context.getPackageName());
-                if (imgId != 0) holder.ivProductImage.setImageResource(imgId);
-            }
+
+        if (imageName != null && !imageName.isEmpty()) {
+            com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                    .load(imageName)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_dialog_alert)
+                    .into(holder.ivProductImage);
+        } else {
+            holder.ivProductImage.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
-        // ADD LOGIC HERE TO HANDLE INVENTORY MODE vs DASHBOARD MODE
         if (productClickListener != null && editListener != null && deleteListener != null) {
-            // --- INVENTORY MODE ---
-            // Show buttons and make the card tappable
             holder.ivEdit.setVisibility(View.VISIBLE);
             holder.ivDelete.setVisibility(View.VISIBLE);
             holder.itemView.setClickable(true);
 
-            // 1. Click the entire card to open ProductDetailsActivity
             holder.itemView.setOnClickListener(v -> productClickListener.onProductClick(product));
 
-            // 2. Click the Edit Pencil icon
             holder.ivEdit.setOnClickListener(v -> editListener.onEdit(product));
 
-            // 3. Click the Delete Trash icon
             holder.ivDelete.setOnClickListener(v ->
                     new AlertDialog.Builder(context)
                             .setTitle("Delete Product")
@@ -98,8 +92,6 @@ public class SellerProductAdapter extends RecyclerView.Adapter<SellerProductAdap
                             .show()
             );
         } else {
-            // --- DASHBOARD MODE (Top 5) ---
-            // Hide buttons and disable tapping completely
             holder.ivEdit.setVisibility(View.GONE);
             holder.ivDelete.setVisibility(View.GONE);
             holder.itemView.setOnClickListener(null);

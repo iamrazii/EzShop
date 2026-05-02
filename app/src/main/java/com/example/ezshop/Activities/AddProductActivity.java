@@ -357,8 +357,8 @@ public class AddProductActivity extends AppCompatActivity {
 
         String prompt = "You are an expert e-commerce copywriter. Write a compelling, " +
                 "3-sentence product description for a " + condition +
-                " item called '" + productName + "' in the " + category + " category. " +
-                "Do not include any greetings, hashtags, or formatting. Just pure text.";
+                " item, in the " + category + " category. " +
+                "Do not include any greetings, product naming, hashtags, or formatting. Just pure text.";
 
         JSONObject jsonBody = new JSONObject();
         try {

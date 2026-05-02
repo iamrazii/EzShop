@@ -55,13 +55,14 @@ public class CheckoutItemAdapter extends RecyclerView.Adapter<CheckoutItemAdapte
                 holder.tvPrice.setText(String.format("$%.2f", p.getPrice()));
 
                 String imageName = p.getProductimage();
-                if (imageName != null) {
-                    if (imageName.startsWith("content://") || imageName.startsWith("file://") || imageName.startsWith("http")) {
-                        holder.ivImage.setImageURI(android.net.Uri.parse(imageName));
-                    } else {
-                        int imgId = context.getResources().getIdentifier(imageName, "drawable", context.getPackageName());
-                        if (imgId != 0) holder.ivImage.setImageResource(imgId);
-                    }
+                if (imageName != null && !imageName.isEmpty()) {
+                    com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                            .load(imageName)
+                            .placeholder(android.R.drawable.ic_menu_gallery)
+                            .error(android.R.drawable.ic_dialog_alert)
+                            .into(holder.ivImage);
+                } else {
+                    holder.ivImage.setImageResource(android.R.drawable.ic_menu_gallery);
                 }
                 break;
             }

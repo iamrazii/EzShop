@@ -22,6 +22,7 @@ import com.example.ezshop.models.Order;
 import com.example.ezshop.models.OrderItem;
 import com.example.ezshop.models.Product;
 import com.example.ezshop.models.Review;
+import com.example.ezshop.models.Store;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -89,7 +90,7 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
         holder.tvOrderDate.setText("Ordered on: " + sdf.format(new Date(order.getCreatedAt())));
-        holder.tvOrderTotal.setText(String.format("$%.2f", order.getTotalPrice()));
+        holder.tvOrderTotal.setText(String.format(Locale.getDefault(), "$%.2f", order.getTotalPrice()));
 
         long now = System.currentTimeMillis();
         long diffMillis = now - order.getCreatedAt();
@@ -105,11 +106,8 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
 
         if (allProducts.isEmpty()) return; // Wait for products to load
 
-        // ASYNC FETCH: Load the individual items inside this specific order
         dbManager.orderDB.getOrderItems(order.getOrderId()).addOnSuccessListener(snap -> {
 
-            // ✅ CRITICAL FIX: Clear the views INSIDE the success listener
-            // This prevents duplicate items from stacking when the view recycles or data updates
             holder.llOrderItems.removeAllViews();
 
             LayoutInflater inflater = LayoutInflater.from(context);
@@ -120,7 +118,7 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
 
                 View productView = inflater.inflate(R.layout.item_my_order_product, holder.llOrderItems, false);
 
-                ImageView ivImage = productView.findViewById(R.id.ivProductImage);
+                ImageView ivProductImage = productView.findViewById(R.id.ivProductImage);
                 TextView tvName = productView.findViewById(R.id.tvProductName);
                 TextView tvPrice = productView.findViewById(R.id.tvProductPrice);
                 TextView tvQty = productView.findViewById(R.id.tvProductQty);
@@ -136,17 +134,20 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
 
                 if (matchedProduct != null) {
                     tvName.setText(matchedProduct.getName());
-                    tvPrice.setText(String.format("$%.2f", item.getPriceAtPurchase()));
+                    tvPrice.setText(String.format(Locale.getDefault(), "$%.2f", item.getPriceAtPurchase()));
                     tvQty.setText("x" + item.getQuantity());
 
-                    String img = matchedProduct.getProductimage();
-                    if (img != null) {
-                        if (img.startsWith("content://") || img.startsWith("file://") || img.startsWith("http")) {
-                            ivImage.setImageURI(Uri.parse(img));
-                        } else {
-                            int resId = context.getResources().getIdentifier(img, "drawable", context.getPackageName());
-                            if (resId != 0) ivImage.setImageResource(resId);
-                        }
+                    String imgUrl = matchedProduct.getProductimage();
+
+                    if (imgUrl != null && !imgUrl.isEmpty()) {
+                        // Let Glide handle URLs and URIs
+                        com.bumptech.glide.Glide.with(context)
+                                .load(imgUrl)
+                                .placeholder(android.R.drawable.ic_menu_gallery)
+                                .error(android.R.drawable.ic_dialog_alert)
+                                .into(ivProductImage);
+                    } else {
+                        ivProductImage.setImageResource(android.R.drawable.ic_menu_gallery);
                     }
 
                     Product finalMatchedProduct = matchedProduct;
@@ -216,13 +217,72 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
             SimpleDateFormat sdf = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
             review.setReviewDate(sdf.format(new Date()));
 
-            // Show success toast only after Firebase confirms
+            // Show success toast only after Firebase confirms the review is added
             dbManager.reviewDB.addReview(review).addOnSuccessListener(aVoid -> {
-                Toast.makeText(context, "Review submitted! ⭐", Toast.LENGTH_SHORT).show();
 
-                // Add to the local list so it stays hidden on scroll, and hide the button instantly
-                reviewedProductIds.add(product.getProductId());
-                btnReview.setVisibility(View.GONE);
+                // --- 1. PRODUCT RATING LOGIC ---
+                double currentProdAvg = product.getRatingAverage();
+                int prodEstimatedN = 10; // Product weight factor
+                double newProdAvg;
+
+                if (currentProdAvg == 0.0) {
+                    newProdAvg = rating;
+                } else {
+                    newProdAvg = ((currentProdAvg * prodEstimatedN) + rating) / (prodEstimatedN + 1);
+                }
+
+                product.setRatingAverage(newProdAvg);
+
+                // Update Product in DB
+                dbManager.productDB.updateProduct(product).addOnSuccessListener(aVoid2 -> {
+
+                    // Hide the review button instantly
+                    reviewedProductIds.add(product.getProductId());
+                    btnReview.setVisibility(View.GONE);
+
+                    // --- 2. STORE RATING LOGIC ---
+                    String storeId = product.getStoreId();
+
+                    if (storeId != null && !storeId.isEmpty()) {
+                        dbManager.storeDB.getStoreById(storeId).addOnSuccessListener(storeSnap -> {
+                            Store store = storeSnap.toObject(Store.class);
+
+                            if (store != null) {
+                                double currentStoreAvg = store.getRating();
+                                int storeEstimatedN = 50; // Higher weight factor for the store
+                                double newStoreAvg;
+
+                                if (currentStoreAvg == 0.0) {
+                                    newStoreAvg = rating;
+                                } else {
+                                    newStoreAvg = ((currentStoreAvg * storeEstimatedN) + rating) / (storeEstimatedN + 1);
+                                }
+
+                                store.setRating(newStoreAvg);
+
+                                // Update Store in DB
+                                dbManager.storeDB.updateStore(store).addOnSuccessListener(aVoid3 -> {
+                                    // Success for everything!
+                                    Toast.makeText(context, "Review submitted! ⭐", Toast.LENGTH_SHORT).show();
+                                }).addOnFailureListener(e -> {
+                                    Toast.makeText(context, "Review saved! (Store sync delayed)", Toast.LENGTH_SHORT).show();
+                                });
+                            } else {
+                                Toast.makeText(context, "Review submitted! ⭐", Toast.LENGTH_SHORT).show();
+                            }
+                        }).addOnFailureListener(e -> {
+                            Toast.makeText(context, "Review submitted! ⭐", Toast.LENGTH_SHORT).show();
+                        });
+                    } else {
+                        Toast.makeText(context, "Review submitted! ⭐", Toast.LENGTH_SHORT).show();
+                    }
+
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(context, "Failed to update product rating.", Toast.LENGTH_SHORT).show();
+                });
+
+            }).addOnFailureListener(e -> {
+                Toast.makeText(context, "Failed to submit review.", Toast.LENGTH_SHORT).show();
             });
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());

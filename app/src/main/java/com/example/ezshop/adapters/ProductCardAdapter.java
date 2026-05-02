@@ -19,16 +19,14 @@ public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.
 
     private ArrayList<Product> productList;
     private OnProductClickListener listener;
-    private int displayLimit = 0; // 0 means show all
+    private int displayLimit = 0;
 
-    // Constructor 1: Show all items
     public ProductCardAdapter(ArrayList<Product> productList, OnProductClickListener listener) {
         this.productList = productList;
         this.listener = listener;
         this.displayLimit = 0;
     }
 
-    // Constructor 2: Show limited items
     public ProductCardAdapter(ArrayList<Product> productList, int displayLimit, OnProductClickListener listener) {
         this.productList = productList;
         this.listener = listener;
@@ -47,8 +45,8 @@ public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.
         Product product = productList.get(position);
         holder.tvName.setText(product.getName());
         holder.tvPrice.setText(String.format("$%.2f", product.getPrice()));
-        holder.tvrating.setText(String.format("",product.getRatingAverage()));
-        holder.tvsold.setText(product.getSoldCount() + "");
+        holder.tvrating.setText("⭐ " +product.getRatingAverage() + " |"  );
+        holder.tvsold.setText("Sold " + product.getSoldCount() + "+");
         String imageName = product.getProductimage();
 
         if (imageName != null && !imageName.isEmpty()) {
@@ -63,7 +61,6 @@ public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.
         holder.itemView.setOnClickListener(v -> listener.onProductClick(product));
     }
 
-    // THE MAGIC: Restrict the item count if a limit is set!
     @Override
     public int getItemCount() {
         if (displayLimit > 0) {
@@ -74,7 +71,7 @@ public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivImage;
-        TextView tvName, tvPrice,tvsold,tvrating;
+        TextView tvName, tvPrice,tvsold,tvrating,tvlocation;
 
 
         ViewHolder(View itemView) {
@@ -84,6 +81,7 @@ public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.
             tvPrice = itemView.findViewById(R.id.tvProductPrice);
             tvrating = itemView.findViewById(R.id.tvProductCardRating);
             tvsold = itemView.findViewById(R.id.tvProductCardSold);
+
         }
     }
 }

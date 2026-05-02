@@ -26,10 +26,11 @@
 
         <ImageView
             android:id="@+id/ivCategoryIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:src="@drawable/laptop_icon"
-            app:tint="#000000" /> <TextView
+            app:tint="#000000" />
+        <TextView
         android:id="@+id/tvCategoryName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
