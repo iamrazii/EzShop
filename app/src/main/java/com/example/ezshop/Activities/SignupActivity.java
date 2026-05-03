@@ -3,6 +3,7 @@ package com.example.ezshop.Activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -15,6 +16,7 @@ import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Store;
 import com.example.ezshop.models.User;
 import com.example.ezshop.utilities.SessionManager;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.UUID;
 
@@ -23,6 +25,7 @@ public class SignupActivity extends AppCompatActivity {
     private EditText etName, etEmail, etPassword, etAddress, etStoreName, etStoreLocation;
     private RadioButton rbUser, rbSeller;
     private LinearLayout llStoreFields, llUserFields;
+    private Button btnSignUp;
     private DBManager dbManager;
     private SessionManager sessionManager;
 
@@ -43,6 +46,7 @@ public class SignupActivity extends AppCompatActivity {
         etStoreLocation = findViewById(R.id.etStoreLocation);
         rbUser = findViewById(R.id.rbUser);
         rbSeller = findViewById(R.id.rbSeller);
+        btnSignUp = findViewById(R.id.btnSignUp);
 
         llStoreFields = findViewById(R.id.llStoreFields);
         llUserFields = findViewById(R.id.llUserFields);
@@ -59,9 +63,7 @@ public class SignupActivity extends AppCompatActivity {
             finish();
         });
 
-        findViewById(R.id.btnSignUp).setOnClickListener(v -> {
-            attemptSignup();
-        });
+        btnSignUp.setOnClickListener(v -> attemptSignup());
     }
 
     private void attemptSignup() {
@@ -74,7 +76,32 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
-        // Generate a definitive ID for the new user
+        btnSignUp.setEnabled(false);
+        btnSignUp.setText("Verifying...");
+
+        FirebaseFirestore.getInstance().collection("users")
+                .whereEqualTo("email", email)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (!task.getResult().isEmpty()) {
+                            // The query found an existing user with this email!
+                            Toast.makeText(this, "This email is already registered!", Toast.LENGTH_LONG).show();
+                            btnSignUp.setEnabled(true);
+                            btnSignUp.setText("Sign Up");
+                        } else {
+                            // Email is unique, proceed to save the new account
+                            completeRegistration(name, email, password);
+                        }
+                    } else {
+                        Toast.makeText(this, "Network error. Please try again.", Toast.LENGTH_SHORT).show();
+                        btnSignUp.setEnabled(true);
+                        btnSignUp.setText("Sign Up");
+                    }
+                });
+    }
+
+    private void completeRegistration(String name, String email, String password) {
         String userId = UUID.randomUUID().toString();
 
         User user = new User();
@@ -82,7 +109,7 @@ public class SignupActivity extends AppCompatActivity {
         user.setName(name);
         user.setEmail(email);
         user.setPasswordHash(password);
-        user.setWalletBalance(0.00); // Starting promo balance
+        user.setWalletBalance(0.00);
 
         if (rbSeller.isChecked()) {
             String storeName = etStoreName.getText().toString().trim();
@@ -90,14 +117,14 @@ public class SignupActivity extends AppCompatActivity {
 
             if (storeName.isEmpty()) {
                 Toast.makeText(this, "Please enter your store name", Toast.LENGTH_SHORT).show();
+                btnSignUp.setEnabled(true);
+                btnSignUp.setText("Sign Up");
                 return;
             }
 
             user.setDefaultShippingAddress("N/A");
 
-            // Save User to Firebase, THEN Save Store to Firebase
             dbManager.userDB.addUser(user).addOnSuccessListener(this, aVoid -> {
-
                 String storeId = UUID.randomUUID().toString();
                 Store store = new Store();
                 store.setStoreId(storeId);
@@ -114,14 +141,24 @@ public class SignupActivity extends AppCompatActivity {
                     Toast.makeText(this, "Store created! Welcome aboard.", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(this, SellerHomeActivity.class));
                     finishAffinity();
-                }).addOnFailureListener(this, e -> Toast.makeText(this, "Failed to create store data.", Toast.LENGTH_SHORT).show());
+                }).addOnFailureListener(this, e -> {
+                    Toast.makeText(this, "Failed to create store data.", Toast.LENGTH_SHORT).show();
+                    btnSignUp.setEnabled(true);
+                    btnSignUp.setText("Sign Up");
+                });
 
-            }).addOnFailureListener(this, e -> Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show());
+            }).addOnFailureListener(this, e -> {
+                Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show();
+                btnSignUp.setEnabled(true);
+                btnSignUp.setText("Sign Up");
+            });
 
         } else {
             String address = etAddress.getText().toString().trim();
             if (address.isEmpty()) {
                 Toast.makeText(this, "Please enter your shipping address", Toast.LENGTH_SHORT).show();
+                btnSignUp.setEnabled(true);
+                btnSignUp.setText("Sign Up");
                 return;
             }
 
@@ -132,7 +169,11 @@ public class SignupActivity extends AppCompatActivity {
                 Toast.makeText(this, "Account created! Happy shopping.", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, UserHomeActivity.class));
                 finishAffinity();
-            }).addOnFailureListener(this, e -> Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show());
+            }).addOnFailureListener(this, e -> {
+                Toast.makeText(this, "Registration failed. Try a different email.", Toast.LENGTH_SHORT).show();
+                btnSignUp.setEnabled(true);
+                btnSignUp.setText("Sign Up");
+            });
         }
     }
 
