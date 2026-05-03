@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.ezshop.BuildConfig;
 import com.example.ezshop.R;
 import com.example.ezshop.adapters.ReviewsAdapter;
 import com.example.ezshop.database.DBManager;
@@ -278,7 +279,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
     }
 
     private void generateAISummary(String reviewsText) {
-        GenerativeModel gm = new GenerativeModel("gemini-3.1-flash-lite-preview", "AIzaSyACbNXePoBtBZlhoA7wM9Bx3Q41mcdP3_g");
+        GenerativeModel gm = new GenerativeModel("gemini-3.1-flash-lite-preview", BuildConfig.GEMINI_API_KEY);
         GenerativeModelFutures model = GenerativeModelFutures.from(gm);
 
         String promptText = "You are an AI summarizing product reviews for an e-commerce app. " +

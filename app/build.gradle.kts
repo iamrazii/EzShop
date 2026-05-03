@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
@@ -9,6 +12,10 @@ android {
         version = release(36)
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.ezshop"
         minSdk = 24
@@ -17,6 +24,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Safely read the API key from local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile))
+        }
+
+        val apiKey = localProperties.getProperty("GEMINI_API_KEY") ?: "KEY_MISSING"
+        buildConfigField("String", "GEMINI_API_KEY", "\"$apiKey\"")
     }
 
     buildTypes {

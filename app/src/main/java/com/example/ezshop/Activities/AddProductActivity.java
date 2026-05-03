@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
+import com.example.ezshop.BuildConfig;
 import com.example.ezshop.R;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Category;
@@ -372,7 +373,7 @@ public class AddProductActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        String apiKey = "AIzaSyBwn8es3W8QxdQ1PnnmcLIJFcUker2gf3E".trim(); // API KEY
+        String apiKey = BuildConfig.GEMINI_API_KEY; // API KEY
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
         OkHttpClient client = new OkHttpClient();
         MediaType JSON = MediaType.get("application/json; charset=utf-8");

@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import com.example.ezshop.BuildConfig;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -195,7 +195,7 @@ public class SellerDashboardFragment extends Fragment {
             e.printStackTrace();
         }
 
-        String apiKey = "AIzaSyACbNXePoBtBZlhoA7wM9Bx3Q41mcdP3_g";
+        String apiKey = BuildConfig.GEMINI_API_KEY;
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=" + apiKey;
 
         OkHttpClient client = new OkHttpClient();
