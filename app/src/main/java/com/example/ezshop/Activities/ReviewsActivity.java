@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Pair;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +18,7 @@ import com.example.ezshop.R;
 import com.example.ezshop.adapters.ReviewsAdapter;
 import com.example.ezshop.database.DBManager;
 import com.example.ezshop.models.Review;
+import com.example.ezshop.models.User;
 import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ public class ReviewsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_reviews);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -49,14 +52,39 @@ public class ReviewsActivity extends AppCompatActivity {
         String productId = intent.getStringExtra("PRODUCT_ID");
 
         if (productId != null) {
-            // NEW WAY: Asynchronous Firebase Call
             dbManager.reviewDB.getReviewsByProductId(productId).addOnSuccessListener(this, snap -> {
                 ArrayList<Pair<Review, String>> allReviews = new ArrayList<>();
-                for (DocumentSnapshot doc : snap) {
-                    allReviews.add(new Pair<>(doc.toObject(Review.class), "User"));
-                }
+
                 ReviewsAdapter adapter = new ReviewsAdapter(this, allReviews, false);
                 rvAllReviews.setAdapter(adapter);
+
+                if (snap.isEmpty()) {
+                    return;
+                }
+
+                for (DocumentSnapshot doc : snap) {
+                    Review r = doc.toObject(Review.class);
+                    if (r != null) {
+
+                        dbManager.userDB.getUserById(r.getUserId()).addOnCompleteListener(task -> {
+                            String realName = "Unknown User";
+
+                            if (task.isSuccessful() && task.getResult().exists()) {
+                                User reviewer = task.getResult().toObject(User.class);
+                                if (reviewer != null && reviewer.getName() != null) {
+                                    realName = reviewer.getName();
+                                }
+                            }
+
+                            allReviews.add(new Pair<>(r, realName));
+
+                            adapter.notifyDataSetChanged();
+                        });
+                    }
+                }
+            }).addOnFailureListener(e -> {
+                android.util.Log.e("ReviewsActivity", "Failed to load reviews", e);
+                Toast.makeText(this, "Failed to load reviews", Toast.LENGTH_SHORT).show();
             });
         }
     }
