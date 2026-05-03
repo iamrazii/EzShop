@@ -286,7 +286,7 @@ public class ProductDetailsActivity extends AppCompatActivity {
 
     private void generateAISummary(String reviewsText) {
         // 1. Initialize Model
-        GenerativeModel gm = new GenerativeModel("gemini-2.5-flash", "AIzaSyACbNXePoBtBZlhoA7wM9Bx3Q41mcdP3_g");
+        GenerativeModel gm = new GenerativeModel("gemini-3.1-flash-lite-preview", "AIzaSyACbNXePoBtBZlhoA7wM9Bx3Q41mcdP3_g");
         GenerativeModelFutures model = GenerativeModelFutures.from(gm);
 
         // 2. Build the System Prompt
