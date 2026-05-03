@@ -7,7 +7,9 @@
     android:clickable="true"
     android:focusable="true"
     android:orientation="horizontal"
+    android:elevation="@dimen/cardview_default_elevation"
     android:paddingVertical="10dp"
+
     android:paddingHorizontal="3dp">
 
     <androidx.cardview.widget.CardView

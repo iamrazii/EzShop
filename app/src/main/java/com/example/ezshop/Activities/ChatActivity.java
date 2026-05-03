@@ -45,7 +45,6 @@ public class ChatActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        // 🔥 FIXED: Using SessionManager instead of hardcoded SharedPreferences
         sessionManager = new SessionManager(this);
         currentUserId = sessionManager.getUserId();
 
