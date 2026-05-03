@@ -32,7 +32,7 @@ public class InboxFragment extends Fragment {
 
     private FirebaseFirestore db;
     private String currentUserId;
-    private SessionManager sessionManager; // Added variable
+    private SessionManager sessionManager;
 
     public InboxFragment() {}
 

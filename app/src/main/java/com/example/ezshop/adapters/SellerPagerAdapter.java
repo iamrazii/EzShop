@@ -20,13 +20,13 @@ public class SellerPagerAdapter extends FragmentStateAdapter {
         switch (position) {
             case 0: return new SellerDashboardFragment();
             case 1: return new SellerProductsFragment();
-            case 2: return new SellerSettingsFragment(); // Moved up from 3
+            case 2: return new SellerSettingsFragment();
             default: return new SellerDashboardFragment();
         }
     }
 
     @Override
     public int getItemCount() {
-        return 3; // Reduced from 4
+        return 3;
     }
 }

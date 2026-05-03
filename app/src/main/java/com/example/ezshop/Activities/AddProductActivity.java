@@ -92,7 +92,6 @@ public class AddProductActivity extends AppCompatActivity {
         init();
         setupDropdowns();
 
-        // Activate the smart category auto-tagger
         setupAutoTagging();
 
         btnPublishProduct.setOnClickListener(v -> startPublishingProcess());
@@ -129,7 +128,6 @@ public class AddProductActivity extends AppCompatActivity {
         findViewById(R.id.AddProdbtnBack).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
     }
 
-    // ✨ EXACT CATEGORY MATCHING AI AUTO-TAGGER
     private void setupAutoTagging() {
         autoTagRules = new HashMap<>();
 
@@ -187,7 +185,6 @@ public class AddProductActivity extends AppCompatActivity {
                 String inputName = s.toString().toLowerCase().trim();
 
                 for (Map.Entry<String, String> entry : autoTagRules.entrySet()) {
-                    // Check if the product name contains one of our keywords
                     if (inputName.contains(entry.getKey())) {
                         String predictedCategory = entry.getValue();
 

@@ -45,7 +45,7 @@ public class UserSettingsFragment extends Fragment {
         tvAddress = view.findViewById(R.id.tvSettingsAddress);
         rvMyOrders = view.findViewById(R.id.rvMyOrders);
 
-        // Edit Details Button
+        // Edit  Button
         view.findViewById(R.id.btnEditDetails).setOnClickListener(v -> {
             startActivity(new Intent(requireContext(), EditUserDetailsActivity.class));
         });
@@ -95,12 +95,10 @@ public class UserSettingsFragment extends Fragment {
         // NEW WAY: Asynchronous Firebase Call
         dbManager.orderDB.getOrdersForUser(userId)
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    // CRASH SHIELD: Abort if the user navigated away before data loaded
                     if (!isAdded() || getContext() == null) return;
 
                     ArrayList<Order> orders = new ArrayList<>();
 
-                    // Loop through the Firebase snapshot and convert to Order objects
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         Order order = doc.toObject(Order.class);
                         if (order != null) {
@@ -115,10 +113,8 @@ public class UserSettingsFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     if (isAdded() && getContext() != null) {
-                        // Log the exact error to Android Studio's Logcat
                         android.util.Log.e("FirestoreError", "Error loading orders", e);
 
-                        // Show the specific error in the Toast to help you debug quickly
                         Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });;

@@ -29,7 +29,6 @@ public class WelcomeActivity extends AppCompatActivity {
             return;
         }
 
-        // Otherwise, show the Welcome UI
         setContentView(R.layout.activity_welcome);
 
         findViewById(R.id.btnGetStarted).setOnClickListener(v -> {

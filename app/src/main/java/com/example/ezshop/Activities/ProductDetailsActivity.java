@@ -60,7 +60,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
     private DBManager dbManager;
     private SessionManager sessionManager;
 
-    // 🔥 NEW: Global variable to hold the store ID for the chat hop
     private String actualStoreId = null;
 
     @Override
@@ -136,11 +135,9 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 return;
             }
 
-            // Temporarily disable button to prevent spam clicking
             ChatwithSeller.setEnabled(false);
             ChatwithSeller.setText("Connecting...");
 
-            // Look up the store to find the owner's User ID
             FirebaseFirestore.getInstance().collection("stores").document(actualStoreId)
                     .get()
                     .addOnSuccessListener(storeSnap -> {
@@ -177,7 +174,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
 
                 int totalReviews = snap.size();
 
-                // If there are no reviews, hide the AI and button, then stop.
                 if (totalReviews == 0) {
                     layoutAiSummary.setVisibility(View.GONE);
                     btnSeeAllReviews.setVisibility(View.GONE);
@@ -188,11 +184,9 @@ public class ProductDetailsActivity extends AppCompatActivity {
                     Review r = doc.toObject(Review.class);
                     if (r != null) {
 
-                        // Make a call to the UserDB to get the real name
                         dbManager.userDB.getUserById(r.getUserId()).addOnCompleteListener(task -> {
                             String realName = "Unknown User";
 
-                            // If we successfully found the user, grab their name
                             if (task.isSuccessful() && task.getResult().exists()) {
                                 User reviewer = task.getResult().toObject(User.class);
                                 if (reviewer != null && reviewer.getName() != null) {
@@ -279,31 +273,26 @@ public class ProductDetailsActivity extends AppCompatActivity {
         layoutStoreInfo = findViewById(R.id.layoutStoreInfo);
         rowStorefront = findViewById(R.id.rowStorefront);
 
-        // Initialize AI views
         layoutAiSummary = findViewById(R.id.layoutAiSummary);
         tvAiSummaryText = findViewById(R.id.tvAiSummaryText);
     }
 
     private void generateAISummary(String reviewsText) {
-        // 1. Initialize Model
         GenerativeModel gm = new GenerativeModel("gemini-3.1-flash-lite-preview", "AIzaSyACbNXePoBtBZlhoA7wM9Bx3Q41mcdP3_g");
         GenerativeModelFutures model = GenerativeModelFutures.from(gm);
 
-        // 2. Build the System Prompt
         String promptText = "You are an AI summarizing product reviews for an e-commerce app. " +
-                "Read the following reviews and provide a single summary paragraph in a maximum of 3 short sentences. " +
+                "Read the following reviews and provide a single summary paragraph in a maximum of 1 short sentence. " +
                 "Focus purely on the main pros and cons. Do not use conversational filler.\n\nReviews:\n" + reviewsText;
 
         Content content = new Content.Builder().addText(promptText).build();
 
-        // 3. Run the Request on a Background Thread using Guava Futures
         Executor executor = ContextCompat.getMainExecutor(this);
         ListenableFuture<GenerateContentResponse> response = model.generateContent(content);
 
         Futures.addCallback(response, new FutureCallback<GenerateContentResponse>() {
             @Override
             public void onSuccess(GenerateContentResponse result) {
-                // Update UI safely on the main thread
                 runOnUiThread(() -> {
                     if (result != null && result.getText() != null) {
                         tvAiSummaryText.setText(result.getText().trim());

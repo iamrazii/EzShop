@@ -62,7 +62,10 @@ public class Product {
     public void setWeightGrams(int weightGrams) { this.weightGrams = weightGrams; }
 
     public double getRatingAverage() { return ratingAverage; }
-    public void setRatingAverage(double ratingAverage) { this.ratingAverage = ratingAverage; }
+    public void setRatingAverage(double ratingAverage) {
+
+        this.ratingAverage = Math.round(ratingAverage * 10.0) / 10.0;
+    }
 
     public int getSoldCount() { return soldCount; }
     public void setSoldCount(int soldCount) { this.soldCount = soldCount; }

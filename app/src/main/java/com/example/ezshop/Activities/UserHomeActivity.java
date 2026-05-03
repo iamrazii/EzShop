@@ -23,7 +23,6 @@ public class UserHomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
 
-        // Make bottom navigation bar black
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setNavigationBarColor(Color.parseColor("#121212"));
@@ -31,7 +30,6 @@ public class UserHomeActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_user_home);
 
-        // Prevent notch and bottom pill from covering the UI
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(0, systemBars.top, 0, systemBars.bottom);
@@ -41,7 +39,6 @@ public class UserHomeActivity extends AppCompatActivity {
         TabLayout tabLayout = findViewById(R.id.tabLayout);
         ViewPager2 viewPager = findViewById(R.id.viewPager);
 
-        // Disable swipe if you want it to act strictly as a tap-only navigation menu
         viewPager.setUserInputEnabled(false);
 
         UserPagerAdapter adapter = new UserPagerAdapter(this);

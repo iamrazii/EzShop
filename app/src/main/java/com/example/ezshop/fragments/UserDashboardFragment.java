@@ -67,7 +67,6 @@ public class UserDashboardFragment extends Fragment {
         rvBestSellers.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         rvRecommendations.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // Check if the "See All" buttons actually exist before attaching listeners
         if (tvSeeAllRecommended != null) {
             tvSeeAllRecommended.setOnClickListener(v -> {
                 isRecExpanded = !isRecExpanded;
@@ -190,7 +189,6 @@ public class UserDashboardFragment extends Fragment {
             }
         });
     }
-
     private void loadCategories() {
         dbManager.categoryDB.getAllCategories().addOnSuccessListener(snap -> {
             if (!isAdded() || getContext() == null) return;
@@ -201,20 +199,25 @@ public class UserDashboardFragment extends Fragment {
                 Category cat = doc.toObject(Category.class);
                 if (cat == null) continue;
 
-                View chip = inflater.inflate(R.layout.item_category_chip, llCategories, false);
-                TextView tvName = chip.findViewById(R.id.tvCategoryName);
-                tvName.setText(cat.getName());
-                chip.setOnClickListener(v -> {
+                View categoryView = inflater.inflate(R.layout.item_category_chip, llCategories, false);
+
+                TextView tvName = categoryView.findViewById(R.id.tvCategoryName);
+
+                if (tvName != null) {
+                    tvName.setText(cat.getName());
+                }
+
+                categoryView.setOnClickListener(v -> {
                     Intent intent = new Intent(requireActivity(), CategoryResultsActivity.class);
                     intent.putExtra("CATEGORY_ID", cat.getCategoryId());
                     intent.putExtra("CATEGORY_NAME", cat.getName());
                     startActivity(intent);
                 });
-                llCategories.addView(chip);
+
+                llCategories.addView(categoryView);
             }
         });
     }
-
     private void loadProducts() {
         dbManager.productDB.getAllProducts().addOnSuccessListener(snap -> {
             if (!isAdded() || getContext() == null) return;
@@ -228,10 +231,8 @@ public class UserDashboardFragment extends Fragment {
                 cachedRecommendations.add(p);
             }
 
-            // Optional: Shuffle the recommendations array so it looks different from best sellers
             Collections.shuffle(cachedRecommendations);
 
-            // Draw the initial 3-item UI
             updateBestSellersUI();
             updateRecommendationsUI();
         });

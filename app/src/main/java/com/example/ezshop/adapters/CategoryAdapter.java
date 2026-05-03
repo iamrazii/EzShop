@@ -1,11 +1,9 @@
 package com.example.ezshop.adapters;
 
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,7 +18,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     private ArrayList<Category> categoryList;
     private OnCategoryClickListener listener;
 
-    public interface OnCategoryClickListener { // this will handle actions upon click
+    public interface OnCategoryClickListener {
         void onCategoryClick(Category category);
     }
 
@@ -42,16 +40,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         Category currentCategory = categoryList.get(position);
 
         holder.tvName.setText(currentCategory.getName());
-        String iconName = currentCategory.getIconName();
-
-        int drawbableid = context.getResources().getIdentifier(
-                iconName,
-                "drawable",
-                context.getPackageName()
-        );
-
-
-        holder.ivIcon.setImageResource(drawbableid); // assigning category icon
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -66,12 +54,10 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     }
 
     public static class CategoryViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivIcon;
         TextView tvName;
 
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivIcon = itemView.findViewById(R.id.ivCategoryIcon);
             tvName = itemView.findViewById(R.id.tvCategoryName);
         }
     }

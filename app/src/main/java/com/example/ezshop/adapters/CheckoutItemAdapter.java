@@ -27,7 +27,6 @@ public class CheckoutItemAdapter extends RecyclerView.Adapter<CheckoutItemAdapte
         this.cartItems = cartItems;
         this.allProducts = new ArrayList<>();
 
-        // ASYNC FETCH: Populate all products for price matching
         dbManager.productDB.getAllProducts().addOnSuccessListener(snap -> {
             for (DocumentSnapshot doc : snap) {
                 allProducts.add(doc.toObject(Product.class));

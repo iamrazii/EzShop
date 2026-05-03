@@ -155,13 +155,11 @@ public class ExploreProductFragment extends Fragment {
             if (!isAdded() || getContext() == null) return;
             ArrayList<Product> topProducts = new ArrayList<>();
 
-            // Limit to top 5 visually
             for (int i = 0; i < Math.min(5, snap.size()); i++) {
                 topProducts.add(snap.getDocuments().get(i).toObject(Product.class));
             }
 
             ExploreProductRVAdapter productAdapter = new ExploreProductRVAdapter(getContext(), topProducts, product -> {
-                // Async Store Fetch on click
                 dbManager.storeDB.getStoreById(product.getStoreId()).addOnSuccessListener(storeSnap -> {
                     if (!isAdded() || getContext() == null) return;
                     Store s = storeSnap.toObject(Store.class);

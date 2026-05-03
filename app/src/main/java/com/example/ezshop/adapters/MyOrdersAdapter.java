@@ -152,12 +152,10 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
 
                     Product finalMatchedProduct = matchedProduct;
 
-                    // Check if the product ID is in our HashSet of reviewed items
                     if (reviewedProductIds.contains(finalMatchedProduct.getProductId())) {
                         btnReview.setVisibility(View.GONE); // Hide the button
                     } else {
                         btnReview.setVisibility(View.VISIBLE); // Show the button
-                        // Pass the button to the dialog so we can hide it upon successful submission
                         btnReview.setOnClickListener(v -> showReviewDialog(finalMatchedProduct, btnReview));
                     }
                 }
@@ -217,10 +215,8 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
             SimpleDateFormat sdf = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
             review.setReviewDate(sdf.format(new Date()));
 
-            // Show success toast only after Firebase confirms the review is added
             dbManager.reviewDB.addReview(review).addOnSuccessListener(aVoid -> {
 
-                // --- 1. PRODUCT RATING LOGIC ---
                 double currentProdAvg = product.getRatingAverage();
                 int prodEstimatedN = 10; // Product weight factor
                 double newProdAvg;
@@ -233,14 +229,11 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
 
                 product.setRatingAverage(newProdAvg);
 
-                // Update Product in DB
                 dbManager.productDB.updateProduct(product).addOnSuccessListener(aVoid2 -> {
 
-                    // Hide the review button instantly
                     reviewedProductIds.add(product.getProductId());
                     btnReview.setVisibility(View.GONE);
 
-                    // --- 2. STORE RATING LOGIC ---
                     String storeId = product.getStoreId();
 
                     if (storeId != null && !storeId.isEmpty()) {
@@ -249,7 +242,7 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.ViewHo
 
                             if (store != null) {
                                 double currentStoreAvg = store.getRating();
-                                int storeEstimatedN = 50; // Higher weight factor for the store
+                                int storeEstimatedN = 50;
                                 double newStoreAvg;
 
                                 if (currentStoreAvg == 0.0) {

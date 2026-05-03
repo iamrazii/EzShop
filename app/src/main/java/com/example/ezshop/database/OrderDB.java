@@ -21,10 +21,8 @@ public class OrderDB {
         order.setOrderStatus("Processing");
         order.setCreatedAt(System.currentTimeMillis());
 
-        // 1. Queue Order Save
         batch.set(cloudDb.collection("orders").document(orderId), order);
 
-        // 2. Queue Item Saves
         for (OrderItem item : orderItems) {
             String itemId = cloudDb.collection("order_items").document().getId();
             item.setOrderItemId(itemId);
@@ -32,7 +30,6 @@ public class OrderDB {
             batch.set(cloudDb.collection("order_items").document(itemId), item);
         }
 
-        // 3. Commit everything to Firebase at once!
         return batch.commit();
     }
 

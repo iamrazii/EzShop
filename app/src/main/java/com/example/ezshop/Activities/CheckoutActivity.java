@@ -111,7 +111,6 @@ public class CheckoutActivity extends AppCompatActivity {
         findViewById(R.id.btnOrderNow).setOnClickListener(v -> placeOrder());
     }
 
-    // --- PROMO LOGIC ---
     private void applyPromoLogic() {
         String code = etPromoCode.getText().toString().trim().toLowerCase();
 
@@ -162,7 +161,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private void showMinSpendError(double minSpend) {
         Toast.makeText(this, "Cart must be over $" + minSpend + " to use this promo", Toast.LENGTH_LONG).show();
-        updateTotalDisplay(); // Reset to original price
+        updateTotalDisplay();
     }
 
     private void updateTotalDisplay() {
@@ -220,7 +219,6 @@ public class CheckoutActivity extends AppCompatActivity {
             order.setShippingAddress(address);
             order.setPaymentMethod(paymentMethod);
             order.setTotalPrice(totalPrice);
-            // Save the applied promo code to Firebase
             order.setPromoId(appliedPromoCode);
 
             dbManager.orderDB.placeOrder(order, orderItems).addOnSuccessListener(this, aVoid -> {

@@ -44,7 +44,7 @@ public class SellerDashboardFragment extends Fragment {
     private DBManager dbManager;
     private SessionManager sessionManager;
     private TextView tvWelcomeName, tvStoreName, tvTotalProducts, tvTotalSold, tvStoreRating;
-    private TextView tvAiForecast; // ✨ NEW
+    private TextView tvAiForecast;
     private RecyclerView rvTopSellers;
 
     @Nullable
@@ -141,7 +141,6 @@ public class SellerDashboardFragment extends Fragment {
 
             setupTopSellers(products);
 
-            // ✨ AI FORECAST TRIGGER
             if (!products.isEmpty()) {
                 generateForecast(products.size(), totalSold, finalStoreRating, products);
             } else {
@@ -166,11 +165,9 @@ public class SellerDashboardFragment extends Fragment {
         rvTopSellers.setAdapter(topSellerAdapter);
     }
 
-    // ✨ NEW AI METHOD
     private void generateForecast(int totalItems, int totalSold, double avgRating, ArrayList<Product> allProducts) {
         tvAiForecast.setText("Analyzing store performance...");
 
-        // Create a string of their top items so the AI knows what they sell
         StringBuilder inventoryInfo = new StringBuilder();
         for (int i = 0; i < Math.min(allProducts.size(), 5); i++) {
             inventoryInfo.append(allProducts.get(i).getName())
@@ -181,7 +178,7 @@ public class SellerDashboardFragment extends Fragment {
                 "This store has " + totalItems + " total items, " + totalSold + " total sales, and a " + String.format("%.1f", avgRating) + " star average rating. " +
                 "Their inventory includes: " + inventoryInfo.toString() + " " +
                 "Based on this, forecast which product category they need to improve, and which category they should add more of to increase sales. " +
-                "Keep your response strictly under 4 lines. Do not use markdown formatting. Be direct and helpful.";
+                "Keep your response strictly in 2 short sentences with 10 word each. Do not use markdown formatting. Be direct and helpful.";
 
         JSONObject jsonBody = new JSONObject();
         try {
@@ -198,7 +195,6 @@ public class SellerDashboardFragment extends Fragment {
             e.printStackTrace();
         }
 
-        // REPLACE WITH YOUR GEMINI API KEY
         String apiKey = "AIzaSyACbNXePoBtBZlhoA7wM9Bx3Q41mcdP3_g";
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=" + apiKey;
 
@@ -238,8 +234,7 @@ public class SellerDashboardFragment extends Fragment {
                         getActivity().runOnUiThread(() -> tvAiForecast.setText("Received an unexpected response from AI."));
                     }
                 } else {
-                    // ✨ THIS WAS MISSING ✨
-                    // Catch 400 Bad Request, 403 Forbidden, etc.
+
                     String errorBody = "Unknown error";
                     try {
                         if (response.body() != null) {

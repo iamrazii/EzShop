@@ -53,7 +53,6 @@ public class EditProductActivity extends AppCompatActivity {
         btnFinalUpdate.setEnabled(false);
         btnFinalUpdate.setText("Updating...");
 
-        // FIX: Fetch the EXISTING full product first so we don't overwrite crucial fields with nulls!
         FirebaseFirestore.getInstance().collection("products").document(productId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
