@@ -1,4 +1,197 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">EzShop</string>
+
+    <!-- Login -->
+    <string name="welcome_back">Welcome Back 👋</string>
+    <string name="sign_in_subtitle">Sign in to continue shopping</string>
+    <string name="label_email">Email</string>
+    <string name="label_password">Password</string>
+    <string name="action_login">Login</string>
+    <string name="prompt_no_account">Don\'t have an account? </string>
+    <string name="action_sign_up">Sign Up</string>
+
+    <!-- Sign Up -->
+    <string name="create_account_title">Create Account ✨</string>
+    <string name="create_account_subtitle">Join EzShop today</string>
+    <string name="role_user">User</string>
+    <string name="role_seller">Seller</string>
+    <string name="label_full_name">Full Name</string>
+    <string name="label_shipping_address">Default Shipping Address</string>
+    <string name="label_store_name">Store Name</string>
+    <string name="label_store_location">Store Location</string>
+    <string name="action_create_account">Create Account</string>
+    <string name="prompt_have_account">Already have an account? </string>
+
+    <!-- Welcome -->
+    <string name="welcome_tagline">Shop smarter, live better</string>
+    <string name="action_get_started">Get Started</string>
+    <string name="action_already_have_account">I already have an account</string>
+
+    <!-- Cart / Checkout -->
+    <string name="title_my_cart">My Cart</string>
+    <string name="label_product_list">Product List</string>
+    <string name="label_total">Total</string>
+    <string name="placeholder_price">$0.00</string>
+    <string name="action_checkout">Checkout</string>
+    <string name="label_shipping_address_section">Shipping Address</string>
+    <string name="label_promos">Promos</string>
+    <string name="action_apply">Apply</string>
+    <string name="label_payment_method">Payment Method</string>
+    <string name="label_ezshop_balance">EzShop Balance</string>
+    <string name="placeholder_balance">Balance $0.000</string>
+    <string name="label_cod">Cash On Delivery (COD)</string>
+    <string name="action_order_now">Order Now</string>
+
+    <!-- Product Details -->
+    <string name="action_add_to_cart">Add to Cart</string>
+    <string name="title_detail_product">Detail Product</string>
+    <string name="placeholder_product_name">Product Name</string>
+    <string name="placeholder_price_alt">$ 0.00</string>
+    <string name="placeholder_rating">0.0</string>
+    <string name="separator_pipe">|</string>
+    <string name="placeholder_sold">Sold 0+</string>
+    <string name="label_condition">Condition</string>
+    <string name="placeholder_unknown">: Unknown</string>
+    <string name="label_weight">Weight</string>
+    <string name="placeholder_weight">: 0 Gram</string>
+    <string name="label_storefront">Storefront</string>
+    <string name="placeholder_unknown_store">: Unknown Store</string>
+    <string name="label_product_description">Product Description</string>
+    <string name="label_reviews">Reviews</string>
+    <string name="label_ai_review_summary">✨ AI Review Summary</string>
+    <string name="placeholder_summarizing">Summarizing reviews...</string>
+    <string name="action_see_all_reviews">See All Reviews</string>
+    <string name="label_store_information">Store Information</string>
+    <string name="label_location">Location</string>
+    <string name="action_chat">💬 Chat</string>
+
+    <!-- Explore -->
+    <string name="title_explore_products">Explore Products</string>
+    <string name="label_search_by_category">Search by Category</string>
+    <string name="label_trending_search">Trending Search</string>
+    <string name="label_trending_products">Trending Products</string>
+
+    <!-- User Dashboard -->
+    <string name="hint_search">Search product, store, or brand</string>
+    <string name="label_your_balance">Your Balance</string>
+    <string name="placeholder_balance_short">$0.000</string>
+    <string name="action_top_up">➕ Top Up</string>
+    <string name="label_best_sellers">Best Sellers</string>
+    <string name="action_see_all">See All</string>
+    <string name="label_recommendation">Recommendation</string>
+
+    <!-- Seller Dashboard -->
+    <string name="welcome_seller">Welcome, Seller 👋</string>
+    <string name="seller_summary_subtitle">Here is your store summary today</string>
+    <string name="title_seller_dashboard">Seller Dashboard</string>
+    <string name="placeholder_seller_name">Seller Name</string>
+    <string name="placeholder_zero">0</string>
+    <string name="label_products">Products</string>
+    <string name="label_sold">Sold</string>
+    <string name="label_rating">Rating</string>
+    <string name="action_add">➕ ADD</string>
+    <string name="action_inbox">💬 INBOX</string>
+    <string name="label_ai_store_forecast">✨ AI Store Forecast</string>
+    <string name="placeholder_analyzing">Analyzing store performance...</string>
+    <string name="label_top_selling">Top 5 Best Selling Products</string>
+
+    <!-- Seller Settings -->
+    <string name="title_store_settings">Store Settings</string>
+    <string name="label_status">Status</string>
+    <string name="placeholder_dash">-</string>
+    <string name="action_edit_details">Edit Details</string>
+    <string name="action_logout_account">Logout Account</string>
+    <string name="hint_edit_store_name">Edit Store Name</string>
+    <string name="hint_edit_location">Edit Location</string>
+    <string name="label_store_status">Store Status</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+
+    <!-- Seller Products / Add / Edit -->
+    <string name="title_manage_inventory">Manage Inventory</string>
+    <string name="title_add_new_product">Add New Product</string>
+    <string name="hint_tap_to_add_image">Tap to add image</string>
+    <string name="label_price">Price ($)</string>
+    <string name="label_description">Description</string>
+    <string name="label_category">Category</string>
+    <string name="label_weight_g">Weight (g)</string>
+    <string name="action_publish_product">Publish Product</string>
+    <string name="title_edit_product">Edit Product</string>
+    <string name="action_update_product">Update Product</string>
+
+    <!-- User Settings -->
+    <string name="title_my_profile">My Profile</string>
+    <string name="action_logout">Logout</string>
+    <string name="label_email_address">Email Address</string>
+    <string name="placeholder_email">user@email.com</string>
+    <string name="placeholder_no_address">No address provided</string>
+    <string name="action_my_orders">My Orders</string>
+    <string name="placeholder_user_name">User Name</string>
+
+    <!-- Reviews -->
+    <string name="title_all_reviews">All Reviews</string>
+    <string name="placeholder_rating_full">5.0</string>
+    <string name="separator_dot"> • </string>
+    <string name="placeholder_date">Jan 2022</string>
+    <string name="placeholder_review_text">The item is original. Sealed packaging. The seller is very friendly.</string>
+
+    <!-- Cart Items -->
+    <string name="placeholder_default">Default</string>
+    <string name="symbol_minus">−</string>
+    <string name="placeholder_one">1</string>
+    <string name="symbol_plus">+</string>
+
+    <!-- Product Card -->
+    <string name="placeholder_star_rating">⭐ 4.8</string>
+    <string name="placeholder_sold_count"> | Sold 250+</string>
+
+    <!-- Order -->
+    <string name="label_date">Date</string>
+    <string name="label_order_total">Order Total</string>
+    <string name="action_review">Review</string>
+    <string name="placeholder_quantity">x1</string>
+
+    <!-- Seller Product Item -->
+    <string name="placeholder_sold_zero">Sold 0</string>
+    <string name="separator_mid_dot">  ·  </string>
+    <string name="placeholder_star_zero">⭐ 0.0</string>
+
+    <!-- Chat -->
+    <string name="title_chat_with_seller">Chat with Seller</string>
+    <string name="placeholder_sent_message">This is a sent message</string>
+    <string name="placeholder_received_message">This is a received message</string>
+
+    <!-- Inbox -->
+    <string name="title_messages">Messages</string>
+    <string name="placeholder_buyer_name">Buyer123</string>
+    <string name="placeholder_inbox_message">Is this still available?</string>
+
+    <!-- Category -->
+    <string name="placeholder_laptop">Laptop</string>
+    <string name="placeholder_category">Category</string>
+
+    <!-- Trending Product -->
+    <string name="placeholder_product_trending">Redmi 9A</string>
+    <string name="placeholder_trending_price">$ 348</string>
+    <string name="placeholder_trending_rating">4.8</string>
+    <string name="placeholder_trending_sold">Sold 250+</string>
+
+    <!-- Checkout Product -->
+    <string name="placeholder_price_checkout">$ 0.00</string>
+
+    <!-- Category Results -->
+    <string name="action_save_changes">Save Changes</string>
+    <string name="placeholder_category_name">Category Name</string>
+    <string name="sort_price_high">Price:High</string>
+    <string name="sort_price_low">Price:Low</string>
+    <string name="sort_top_rated">Top Rated</string>
+
+    <!-- Add Product -->
+    <string name="hint_tap_to_add_photo">Tap to Add Photo</string>
+    <string name="action_auto_write_description"> Auto-Write Description</string>
+
+    <!-- Cart -->
+    <string name="label_last_seen">Last Seen</string>
 </resources>
+

@@ -4,14 +4,14 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="@color/white">
 
     <LinearLayout
         android:id="@+id/prodDetailBottomBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="#FFFFFF"
+        android:background="@color/white"
         android:elevation="8dp"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
@@ -22,8 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:gravity="center"
-            android:text="Add to Cart"
-            android:textColor="#FFFFFF"
+            android:text="@string/action_add_to_cart"
+            android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -54,15 +54,15 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:src="@drawable/backbtn_icon"
-                    app:tint="#333333" />
+                    app:tint="@color/text_dark" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Detail Product"
-                    android:textColor="#000000"
+                    android:text="@string/title_detail_product"
+                    android:textColor="@color/black"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -73,7 +73,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="320dp"
                 android:layout_marginHorizontal="16dp"
-                app:cardBackgroundColor="#F5F5F5"
+                app:cardBackgroundColor="@color/surface"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
 
@@ -96,8 +96,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Product Name"
-                    android:textColor="#000000"
+                    android:text="@string/placeholder_product_name"
+                    android:textColor="@color/black"
                     android:textSize="22sp"
                     android:textStyle="bold" />
 
@@ -105,8 +105,8 @@
                     android:id="@+id/prodDetailTvDetailPrice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="$ 0.00"
-                    android:textColor="#000000"
+                    android:text="@string/placeholder_price_checkout"
+                    android:textColor="@color/black"
                     android:textSize="22sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -123,34 +123,34 @@
                     android:layout_width="14dp"
                     android:layout_height="14dp"
                     android:src="@android:drawable/star_on"
-                    app:tint="#FFC107" />
+                    app:tint="@color/star_yellow" />
 
                 <TextView
                     android:id="@+id/prodDetailTvDetailRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
-                    android:text="0.0"
-                    android:textColor="#757575"
+                    android:text="@string/placeholder_rating"
+                    android:textColor="@color/text_gray"
                     android:textSize="12sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="6dp"
-                    android:text="|"
-                    android:textColor="#D9D9D9" />
+                    android:text="@string/separator_pipe"
+                    android:textColor="@color/card_bg_gray" />
 
                 <TextView
                     android:id="@+id/prodDetailTvDetailSold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sold 0+"
-                    android:textColor="#757575"
+                    android:text="@string/placeholder_sold"
+                    android:textColor="@color/text_gray"
                     android:textSize="12sp" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="#F0F0F0" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="@color/input_bg" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -162,24 +162,24 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:text="Detail Product"
-                    android:textColor="#000000"
+                    android:text="@string/title_detail_product"
+                    android:textColor="@color/black"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
-                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Condition" android:textColor="#757575" />
-                    <TextView android:id="@+id/prodDetailTvDetailCondition" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=": Unknown" android:textColor="#333333" />
+                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="@string/label_condition" android:textColor="@color/text_gray" />
+                    <TextView android:id="@+id/prodDetailTvDetailCondition" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/placeholder_unknown" android:textColor="@color/text_dark" />
                 </LinearLayout>
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
-                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Weight" android:textColor="#757575" />
-                    <TextView android:id="@+id/prodDetailTvDetailWeight" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=": 0 Gram" android:textColor="#333333" />
+                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="@string/label_weight" android:textColor="@color/text_gray" />
+                    <TextView android:id="@+id/prodDetailTvDetailWeight" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/placeholder_weight" android:textColor="@color/text_dark" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/rowStorefront" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
-                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Storefront" android:textColor="#757575" />
-                    <TextView android:id="@+id/prodDetailTvDetailStoreName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=": Unknown Store" android:textColor="#333333" />
+                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="@string/label_storefront" android:textColor="@color/text_gray" />
+                    <TextView android:id="@+id/prodDetailTvDetailStoreName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/placeholder_unknown_store" android:textColor="@color/text_dark" />
                 </LinearLayout>
 
                 <TextView
@@ -187,12 +187,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Product Description"
-                    android:textColor="#757575"
+                    android:text="@string/label_product_description"
+                    android:textColor="@color/text_gray"
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/input_bg" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -204,8 +204,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Reviews"
-                    android:textColor="#000000"
+                    android:text="@string/label_reviews"
+                    android:textColor="@color/black"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -224,8 +224,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="✨ AI Review Summary"
-                        android:textColor="#2196F3"
+                        android:text="@string/label_ai_review_summary"
+                        android:textColor="@color/accent_blue"
                         android:textStyle="bold"
                         android:textSize="14sp"/>
 
@@ -234,8 +234,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="Summarizing reviews..."
-                        android:textColor="#333333"
+                        android:text="@string/placeholder_summarizing"
+                        android:textColor="@color/text_dark"
                         android:textSize="13sp"
                         android:maxLines="3"
                         android:ellipsize="end"/>
@@ -258,13 +258,13 @@
                     android:clickable="true"
                     android:gravity="center"
                     android:paddingVertical="10dp"
-                    android:text="See All Reviews"
-                    android:textColor="#333333"
+                    android:text="@string/action_see_all_reviews"
+                    android:textColor="@color/text_dark"
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="#F0F0F0" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="@color/input_bg" />
 
             <LinearLayout
                 android:id="@+id/layoutStoreInfo"
@@ -278,8 +278,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:text="Store Information"
-                    android:textColor="#000000"
+                    android:text="@string/label_store_information"
+                    android:textColor="@color/black"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -292,7 +292,7 @@
                     <androidx.cardview.widget.CardView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        app:cardBackgroundColor="#D9D9D9"
+                        app:cardBackgroundColor="@color/card_bg_gray"
                         app:cardCornerRadius="24dp"
                         app:cardElevation="0dp">
 
@@ -317,16 +317,16 @@
                             android:id="@+id/prodDetailTvStoreTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Store Name"
-                            android:textColor="#000000"
+                            android:text="@string/label_store_name"
+                            android:textColor="@color/black"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/prodDetailTvStoreLocation"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Location"
-                            android:textColor="#757575"
+                            android:text="@string/label_location"
+                            android:textColor="@color/text_gray"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -338,11 +338,11 @@
                         android:layout_marginStart="8dp"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
-                        android:text="💬 Chat"
-                        android:textColor="#FFFFFF"
+                        android:text="@string/action_chat"
+                        android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#2196F3"
+                        app:backgroundTint="@color/accent_blue"
                         app:cornerRadius="8dp" />
 
                 </LinearLayout>

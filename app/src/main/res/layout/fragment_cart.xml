@@ -30,7 +30,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="My Cart"
+            android:text="@string/title_my_cart"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -43,7 +43,7 @@
         android:id="@+id/tvProductListLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Product List"
+        android:text="@string/label_product_list"
         android:textColor="@color/text_primary"
         android:textSize="16sp"
         android:textStyle="bold"
@@ -93,7 +93,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Total"
+                    android:text="@string/label_total"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"/>
 
@@ -101,7 +101,7 @@
                     android:id="@+id/tvTotal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="$0.00"
+                    android:text="@string/placeholder_price"
                     android:textColor="@color/text_primary"
                     android:textSize="22sp"
                     android:textStyle="bold"/>
@@ -111,7 +111,7 @@
                 android:id="@+id/btnCheckout"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:text="Checkout"
+                android:text="@string/action_checkout"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="bold"

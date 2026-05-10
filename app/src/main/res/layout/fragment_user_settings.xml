@@ -23,7 +23,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="My Profile"
+            android:text="@string/title_my_profile"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"/>
@@ -33,11 +33,11 @@
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Logout"
-            android:textColor="#F44336"
+            android:text="@string/action_logout"
+            android:textColor="@color/logout_red"
             android:textSize="15sp"
             android:textStyle="bold"
-            app:rippleColor="#33F44336"
+            app:rippleColor="@color/ripple_red"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:minWidth="0dp"
@@ -77,14 +77,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Full Name"
+                        android:text="@string/label_full_name"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"/>
                     <TextView
                         android:id="@+id/tvSettingsName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="User Name"
+                        android:text="@string/placeholder_user_name"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -93,14 +93,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Email Address"
+                        android:text="@string/label_email_address"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"/>
                     <TextView
                         android:id="@+id/tvSettingsEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="user@email.com"
+                        android:text="@string/placeholder_email"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -109,14 +109,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Shipping Address"
+                        android:text="@string/label_shipping_address_section"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"/>
                     <TextView
                         android:id="@+id/tvSettingsAddress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="No address provided"
+                        android:text="@string/placeholder_no_address"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold"/>
@@ -129,7 +129,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="16dp"
-                android:text="Edit Details"
+                android:text="@string/action_edit_details"
                 android:textColor="@color/primary"
                 app:strokeColor="@color/primary"
                 app:cornerRadius="8dp" />
@@ -137,7 +137,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="My Orders"
+                android:text="@string/action_my_orders"
                 android:textColor="@color/text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold"

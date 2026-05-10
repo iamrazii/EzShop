@@ -66,14 +66,33 @@ public class CategoryResultsActivity extends AppCompatActivity {
                     });
         } else if (searchQuery != null && !searchQuery.trim().isEmpty()) {
             tvTitle.setText("Search: '" + searchQuery + "'");
-            dbManager.productDB.searchProducts(searchQuery)
+
+
+            dbManager.productDB.getAllProducts()
                     .addOnSuccessListener(this, queryDocumentSnapshots -> {
                         productlist = new ArrayList<>();
+                        String lowerCaseQuery = searchQuery.toLowerCase();
                         for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                            productlist.add(doc.toObject(Product.class));
+                            Product product = doc.toObject(Product.class);
+
+                            if (product != null && product.getName() != null) {
+                                String productNameLower = product.getName().toLowerCase();
+
+                                if (productNameLower.contains(lowerCaseQuery)) {
+                                    productlist.add(product);
+                                }
+                            }
                         }
+                        if (productlist.isEmpty()) {
+                            Toast.makeText(this, "No products found for '" + searchQuery + "'", Toast.LENGTH_SHORT).show();
+                        }
+
                         setupAdapter();
                         setupFilters();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error loading products", Toast.LENGTH_SHORT).show();
+                        finish();
                     });
         } else {
             Toast.makeText(this, "Error loading items", Toast.LENGTH_SHORT).show();

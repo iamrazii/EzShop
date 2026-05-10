@@ -14,7 +14,7 @@
         android:id="@+id/tvCategoryName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Category"
+        android:text="@string/placeholder_category"
         android:textColor="@color/text_primary"
         android:textSize="13sp"
         android:paddingStart="6dp"/>

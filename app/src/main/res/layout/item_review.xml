@@ -17,7 +17,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             app:cardCornerRadius="20dp"
-            app:cardBackgroundColor="#D9D9D9"
+            app:cardBackgroundColor="@color/card_bg_gray"
             app:cardElevation="0dp">
 
             <ImageView
@@ -38,8 +38,8 @@
                 android:id="@+id/tvReviewerName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="User Name"
-                android:textColor="#000000"
+                android:text="@string/placeholder_user_name"
+                android:textColor="@color/black"
                 android:textStyle="bold"
                 android:textSize="14sp"/>
 
@@ -54,31 +54,31 @@
                     android:layout_width="12dp"
                     android:layout_height="12dp"
                     android:src="@android:drawable/star_on"
-                    app:tint="#FFC107"/>
+                    app:tint="@color/star_yellow"/>
 
                 <TextView
                     android:id="@+id/tvReviewRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
-                    android:text="5.0"
+                    android:text="@string/placeholder_rating_full"
                     android:textSize="12sp"
-                    android:textColor="#757575"/>
+                    android:textColor="@color/text_gray"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" • "
+                    android:text="@string/separator_dot"
                     android:textSize="12sp"
-                    android:textColor="#757575"/>
+                    android:textColor="@color/text_gray"/>
 
                 <TextView
                     android:id="@+id/tvReviewDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Jan 2022"
+                    android:text="@string/placeholder_date"
                     android:textSize="12sp"
-                    android:textColor="#757575"/>
+                    android:textColor="@color/text_gray"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -88,8 +88,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="The item is original. Sealed packaging. The seller is very friendly."
-        android:textColor="#333333"
+        android:text="@string/placeholder_review_text"
+        android:textColor="@color/text_dark"
         android:textSize="14sp"/>
 
 </LinearLayout>

@@ -16,7 +16,7 @@
         android:layout_height="50dp"
         android:layout_centerVertical="true"
         android:layout_alignParentStart="true"
-        app:cardBackgroundColor="#EEEEEE"
+        app:cardBackgroundColor="@color/divider"
         app:cardCornerRadius="25dp"
         app:cardElevation="0dp">
 
@@ -45,8 +45,8 @@
             android:id="@+id/tvInboxPartnerId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Buyer123"
-            android:textColor="#222222"
+            android:text="@string/placeholder_buyer_name"
+            android:textColor="@color/text_very_dark"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -57,8 +57,8 @@
             android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Is this still available?"
-            android:textColor="#757575"
+            android:text="@string/placeholder_inbox_message"
+            android:textColor="@color/text_gray"
             android:textSize="14sp" />
     </LinearLayout>
 

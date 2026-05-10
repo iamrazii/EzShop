@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Store Settings"
+            android:text="@string/title_store_settings"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -36,14 +36,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Store Name"
+                    android:text="@string/label_store_name"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"/>
                 <TextView
                     android:id="@+id/tvStoreNameDetail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="-"
+                    android:text="@string/placeholder_dash"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"
                     android:textSize="16sp"
@@ -52,14 +52,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Location"
+                    android:text="@string/label_location"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"/>
                 <TextView
                     android:id="@+id/tvLocationDetail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="-"
+                    android:text="@string/placeholder_dash"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"
                     android:textSize="16sp"
@@ -68,14 +68,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status"
+                    android:text="@string/label_status"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"/>
                 <TextView
                     android:id="@+id/tvStatusDetail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="-"
+                    android:text="@string/placeholder_dash"
                     android:textColor="@color/seller_accent"
                     android:textStyle="bold"
                     android:textSize="16sp"/>
@@ -85,7 +85,7 @@
                 android:id="@+id/btnEditStore"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Edit Details"
+                android:text="@string/action_edit_details"
                 android:textColor="@color/white"
                 android:backgroundTint="@color/black"
                 android:layout_marginTop="24dp"/>
@@ -94,9 +94,9 @@
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Logout Account"
+                android:text="@string/action_logout_account"
                 android:textColor="@color/white"
-                android:backgroundTint="#FF4444"
+                android:backgroundTint="@color/delete_red"
                 android:layout_marginTop="16dp"/>
         </LinearLayout>
 
@@ -110,7 +110,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Edit Store Name"
+                android:text="@string/hint_edit_store_name"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold"/>
@@ -129,7 +129,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Edit Location"
+                android:text="@string/hint_edit_location"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold"/>
@@ -148,7 +148,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Store Status"
+                android:text="@string/label_store_status"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold"/>
@@ -173,7 +173,7 @@
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:text="Cancel"
+                    android:text="@string/action_cancel"
                     android:textColor="@color/text_secondary"
                     android:backgroundTint="@color/input_bg"
                     android:layout_marginEnd="8dp"/>
@@ -183,7 +183,7 @@
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:text="Save"
+                    android:text="@string/action_save"
                     android:textColor="@color/white"
                     android:backgroundTint="@color/black"
                     android:layout_marginStart="8dp"/>
