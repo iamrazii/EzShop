@@ -85,12 +85,10 @@ public class SignupActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         if (!task.getResult().isEmpty()) {
-                            // The query found an existing user with this email!
                             Toast.makeText(this, "This email is already registered!", Toast.LENGTH_LONG).show();
                             btnSignUp.setEnabled(true);
                             btnSignUp.setText("Sign Up");
                         } else {
-                            // Email is unique, proceed to save the new account
                             completeRegistration(name, email, password);
                         }
                     } else {
