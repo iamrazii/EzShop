@@ -176,7 +176,6 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
-    // --- ORDER PLACEMENT ---
     private void placeOrder() {
         if (currentUser == null || currentCart == null || currentCart.isEmpty()) {
             Toast.makeText(this, "Data is still loading or cart is empty", Toast.LENGTH_SHORT).show();

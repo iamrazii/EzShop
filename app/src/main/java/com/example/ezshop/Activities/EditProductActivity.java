@@ -49,7 +49,6 @@ public class EditProductActivity extends AppCompatActivity {
             return;
         }
 
-        // Disable button to prevent accidental double-clicks while loading
         btnFinalUpdate.setEnabled(false);
         btnFinalUpdate.setText("Updating...");
 
@@ -61,12 +60,10 @@ public class EditProductActivity extends AppCompatActivity {
                         Product existingProduct = documentSnapshot.toObject(Product.class);
 
                         if (existingProduct != null) {
-                            // Update ONLY the fields the user changed
                             existingProduct.setName(name);
                             existingProduct.setPrice(Double.parseDouble(priceStr));
                             existingProduct.setDescription(desc);
 
-                            // Now save the fully populated object back to the database
                             dbManager.productDB.updateProduct(existingProduct)
                                     .addOnSuccessListener(aVoid -> {
                                         Toast.makeText(this, "Product Updated Successfully!", Toast.LENGTH_SHORT).show();

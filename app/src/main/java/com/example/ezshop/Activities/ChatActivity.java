@@ -31,7 +31,7 @@ public class ChatActivity extends AppCompatActivity {
     private String currentUserId;
     private String targetSellerId;
     private String chatRoomId;
-    private SessionManager sessionManager; // Added variable
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +67,6 @@ public class ChatActivity extends AppCompatActivity {
             chatRoomId = targetSellerId + "_" + currentUserId;
         }
 
-        // Start listening to Firestore in real-time
         listenForMessages();
 
         btnSendMessage.setOnClickListener(v -> sendMessage());
@@ -80,27 +79,23 @@ public class ChatActivity extends AppCompatActivity {
         long timestamp = System.currentTimeMillis();
         Message newMessage = new Message(currentUserId, targetSellerId, text, timestamp);
 
-        // 1. Save message to the specific Chat Room's sub-collection
         db.collection("chats")
                 .document(chatRoomId)
                 .collection("messages")
                 .add(newMessage)
                 .addOnSuccessListener(documentReference -> {
-                    // Clear the input box on success
                     etMessageInput.setText("");
 
-                    // --- The Dual-Write Inbox Update (Firestore Version) ---
                     InboxItem myInbox = new InboxItem(targetSellerId, text, timestamp);
                     InboxItem theirInbox = new InboxItem(currentUserId, text, timestamp);
 
-                    // Update My Inbox (Sender)
                     db.collection("UserChats")
                             .document(currentUserId)
                             .collection("inbox")
                             .document(targetSellerId)
                             .set(myInbox);
 
-                    // Update Their Inbox (Receiver)
+
                     db.collection("UserChats")
                             .document(targetSellerId)
                             .collection("inbox")
@@ -128,14 +123,12 @@ public class ChatActivity extends AppCompatActivity {
                         llChatContainer.removeAllViews();
                         LayoutInflater inflater = LayoutInflater.from(ChatActivity.this);
 
-                        // Loop through all messages returned by Firestore
                         for (DocumentSnapshot doc : snapshot.getDocuments()) {
                             Message msg = doc.toObject(Message.class);
 
                             if (msg != null) {
                                 View bubbleView;
 
-                                // Determine if this is OUR message or THEIR message
                                 if (currentUserId.equals(msg.senderId)) {
                                     bubbleView = inflater.inflate(R.layout.item_chat_sent, llChatContainer, false);
                                     TextView tv = bubbleView.findViewById(R.id.tvSentMessage);
@@ -150,7 +143,6 @@ public class ChatActivity extends AppCompatActivity {
                             }
                         }
 
-                        // Scroll to the bottom whenever a new message arrives
                         chatScrollView.post(() -> chatScrollView.fullScroll(ScrollView.FOCUS_DOWN));
                     }
                 });

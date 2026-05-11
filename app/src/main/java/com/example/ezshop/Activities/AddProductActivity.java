@@ -182,7 +182,6 @@ public class AddProductActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(android.text.Editable s) {
-                // Convert whatever they type to lowercase so it matches our dictionary perfectly
                 String inputName = s.toString().toLowerCase().trim();
 
                 for (Map.Entry<String, String> entry : autoTagRules.entrySet()) {
@@ -195,7 +194,7 @@ public class AddProductActivity extends AppCompatActivity {
                             actvCategory.setText(predictedCategory, false);
                             Toast.makeText(AddProductActivity.this, "Auto-tagged: " + predictedCategory + " ✨", Toast.LENGTH_SHORT).show();
                         }
-                        break; // Stop searching once we find the first match
+                        break;
                     }
                 }
             }
