@@ -8,7 +8,6 @@ public class Message {
     public long timestamp;
 
     public Message() {
-        // Default constructor required for Firebase Realtime Database
     }
 
     public Message(String senderId, String receiverId, String messageText, long timestamp) {

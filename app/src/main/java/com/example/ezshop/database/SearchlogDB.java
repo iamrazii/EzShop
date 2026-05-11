@@ -27,8 +27,7 @@ public class SearchlogDB {
     }
 
     public Task<QuerySnapshot> getAllLogs() {
-        // Note: Firebase can't "GROUP BY" for trending searches natively.
-        // You'll fetch the recent logs and tally them locally in your fragment!
+
         return cloudDb.collection("search_logs")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(50)

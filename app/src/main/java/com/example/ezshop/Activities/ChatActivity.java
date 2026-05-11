@@ -106,7 +106,7 @@ public class ChatActivity extends AppCompatActivity {
                             .collection("inbox")
                             .document(currentUserId)
                             .set(theirInbox);
-                    // -------------------------------------------------------
+
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to send message", Toast.LENGTH_SHORT).show();
